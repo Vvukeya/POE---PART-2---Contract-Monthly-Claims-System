@@ -1,4 +1,4 @@
-﻿```markdown
+﻿
 # 📋 Contract Monthly Claims System (CMCS)
 
 The **Contract Monthly Claims System (CMCS)** is a web application designed to **streamline monthly claims** for educational institutions. It allows lecturers to submit claims, coordinators to verify them, and managers to approve payments, ensuring **efficiency, accountability, and transparency**.
