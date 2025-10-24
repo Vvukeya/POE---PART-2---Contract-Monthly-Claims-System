@@ -1,0 +1,81 @@
+﻿@{
+    ViewData["Title"] = "Coordinator Dashboard";
+    var userName = ViewBag.UserName;
+    var totalPendingClaims = ViewBag.TotalPendingClaims ?? 0;
+    var totalVerifiedClaims = ViewBag.TotalVerifiedClaims ?? 0;
+    var totalClaims = ViewBag.TotalClaims ?? 0;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"] – CMCS</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>CMCS – Coordinator Dashboard</h1>
+        <a href="@Url.Action("Logout", "Home")" class="signout-btn">Sign Out</a>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="@Url.Action("CoordinatorQueue", "Home")">Review Claims</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Welcome Card -->
+        <div class="card">
+            <h2>Welcome, @userName!</h2>
+            <p><strong>Role:</strong> Programme Coordinator</p>
+            <p>
+                As a Programme Coordinator, your role is vital in ensuring that lecturer claims are
+                reviewed on time, records are accurate, and the claims process runs smoothly.
+            </p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="card">
+                <h3>Total Claims</h3>
+                <p style="font-size: 2rem; color: #1976d2; font-weight: bold;">@totalClaims</p>
+                <p>All claims in system</p>
+            </div>
+
+            <div class="card">
+                <h3>Pending Review</h3>
+                <p style="font-size: 2rem; color: #f57c00; font-weight: bold;">@totalPendingClaims</p>
+                <p>Awaiting your verification</p>
+            </div>
+
+            <div class="card">
+                <h3>Verified</h3>
+                <p style="font-size: 2rem; color: #0288d1; font-weight: bold;">@totalVerifiedClaims</p>
+                <p>Ready for manager approval</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h2>Quick Actions</h2>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <a href="@Url.Action("CoordinatorQueue", "Home")" class="btn btn-primary">Review Pending Claims</a>
+            </div>
+        </div>
+
+        <!-- Instructions -->
+        <div class="card">
+            <h2>Verification Guidelines</h2>
+            <ul style="list-style-type: disc; margin-left: 20px;">
+                <li>Verify that all claim information is accurate and complete</li>
+                <li>Check that supporting documents are provided</li>
+                <li>Ensure hours and rates are reasonable</li>
+                <li>Provide clear feedback if rejecting a claim</li>
+                <li>Approved claims will be sent to Academic Manager for final approval</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
