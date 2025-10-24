@@ -1,0 +1,125 @@
+﻿@model List<POE___PART_2___Contract_Monthly_Claims_System.Models.Claim>
+@{
+    ViewData["Title"] = "All Claims";
+    var userRole = ViewBag.UserRole;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>CMCS – All Claims</h1>
+        <a href="@Url.Action("Logout", "Home")" class="signout-btn">Sign Out</a>
+    </header>
+
+    <nav>
+        <ul>
+            @if (userRole == "Coordinator")
+            {
+                <li><a href="@Url.Action("CoordinatorDashboard", "Home")">Return to Dashboard</a></li>
+                <li><a href="@Url.Action("CoordinatorQueue", "Home")">Review Claims</a></li>
+            }
+            else if (userRole == "Manager")
+            {
+                <li><a href="@Url.Action("ManagerDashboard", "Home")">Return to Dashboard</a></li>
+                <li><a href="@Url.Action("ManagerQueue", "Home")">Approve Claims</a></li>
+            }
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>All Claims - System Overview</h2>
+
+            @if (!Model.Any())
+            {
+                <p>No claims found in the system.</p>
+            }
+            else
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Claim ID</th>
+                            <th>Lecturer</th>
+                            <th>Period</th>
+                            <th>Module Code</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Date Submitted</th>
+                            <th>Documents</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var claim in Model)
+                        {
+                            <tr>
+                                <td>#@claim.ClaimID</td>
+                                <td>@claim.User?.FirstName @claim.User?.Surname</td>
+                                <td>@claim.Month/@claim.Year</td>
+                                <td>@claim.ModuleCode</td>
+                                <td>R @claim.TotalAmount.ToString("N2")</td>
+                                <td>
+                                    @if (claim.Status == "Pending")
+                                    {
+                                        <span class="badge badge-warn">@claim.Status</span>
+                                    }
+                                    else if (claim.Status == "Verified")
+                                    {
+                                        <span class="badge badge-info">@claim.Status</span>
+                                    }
+                                    else if (claim.Status == "Approved")
+                                    {
+                                        <span class="badge badge-primary">@claim.Status</span>
+                                    }
+                                    else if (claim.Status == "Rejected")
+                                    {
+                                        <span class="badge badge-success">@claim.Status</span>
+                                    }
+                                    else if (claim.Status == "Resubmitted")
+                                    {
+                                        <span class="badge badge-resubmitted">@claim.Status</span>
+                                    }
+                                </td>
+                                <td>@claim.SubmissionDate.ToString("dd-MMM-yyyy HH:mm")</td>
+                                <td>
+                                    @if (claim.Documents != null && claim.Documents.Any())
+                                    {
+                                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                                            @foreach (var document in claim.Documents)
+                                            {
+                                                <div style="display: flex; gap: 5px; align-items: center;">
+                                                    <a href="@Url.Action("ViewDocument", "Home", new { documentId = document.DocumentID })"
+                                                       class="btn btn-ghost btn-sm"
+                                                       target="_blank"
+                                                       style="flex: 1; text-align: left; font-size: 0.8rem;">
+                                                        📎 View @document.FileName
+                                                    </a>
+                                                    <a href="@Url.Action("DownloadDocument", "Home", new { documentId = document.DocumentID })"
+                                                       class="btn btn-primary btn-sm"
+                                                       style="white-space: nowrap;">
+                                                        ⬇️
+                                                    </a>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span>—</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</body>
+</html>
