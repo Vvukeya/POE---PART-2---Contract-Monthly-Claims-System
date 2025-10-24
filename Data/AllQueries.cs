@@ -341,6 +341,64 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
             return claims;
         }
 
+        public async Task<List<Claim>> GetAllClaimsAsync()
+        {
+            var claims = new List<Claim>();
+
+            using (var connection = new SqlConnection(_dbConnection.ConnectionString))
+            {
+                await connection.OpenAsync();
+                string query = @"SELECT c.*, u.FirstName, u.Surname, u.Email 
+                               FROM Claims c 
+                               INNER JOIN Users u ON c.UserID = u.UserID 
+                               ORDER BY c.SubmissionDate DESC";
+
+                using (var command = new SqlCommand(query, connection))
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        // Fix: Convert decimal to double properly
+                        var hoursValue = reader.GetValue(reader.GetOrdinal("Hours"));
+                        var hourlyRateValue = reader.GetValue(reader.GetOrdinal("HourlyRate"));
+
+                        double hours = 0;
+                        double hourlyRate = 0;
+
+                        if (hoursValue != DBNull.Value)
+                            hours = Convert.ToDouble(hoursValue);
+
+                        if (hourlyRateValue != DBNull.Value)
+                            hourlyRate = Convert.ToDouble(hourlyRateValue);
+
+                        claims.Add(new Claim
+                        {
+                            ClaimID = reader.GetInt32(reader.GetOrdinal("ClaimID")),
+                            UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
+                            Month = reader.GetInt32(reader.GetOrdinal("Month")),
+                            Year = reader.GetInt32(reader.GetOrdinal("Year")),
+                            ModuleCode = reader.GetString(reader.GetOrdinal("ModuleCode")),
+                            Sessions = reader.GetInt32(reader.GetOrdinal("Sessions")),
+                            Hours = hours,
+                            HourlyRate = hourlyRate,
+                            Description = reader.GetString(reader.GetOrdinal("Description")),
+                            Status = reader.GetString(reader.GetOrdinal("Status")),
+                            CorrectionNotes = reader.IsDBNull(reader.GetOrdinal("CorrectionNotes")) ?
+                                null : reader.GetString(reader.GetOrdinal("CorrectionNotes")),
+                            SubmissionDate = reader.GetDateTime(reader.GetOrdinal("SubmissionDate")),
+                            User = new User
+                            {
+                                FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
+                                Surname = reader.GetString(reader.GetOrdinal("Surname")),
+                                Email = reader.GetString(reader.GetOrdinal("Email"))
+                            }
+                        });
+                    }
+                }
+            }
+            return claims;
+        }
+
         public async Task<bool> UpdateClaimStatusAsync(int claimId, string status, string correctionNotes = null)
         {
             using (var connection = new SqlConnection(_dbConnection.ConnectionString))
