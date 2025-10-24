@@ -2,7 +2,45 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-</div>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"] – Contract Monthly Claims System</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>Contract Monthly Claims System</h1>
+    </header>
+
+    <div class="container">
+        <div class="card" style="text-align: center; padding: 3rem;">
+            <h2>Welcome to CMCS</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem;">
+                Streamline your monthly claims process with our efficient management system
+            </p>
+
+            <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin: 2rem 0;">
+                <div style="flex: 1; min-width: 250px;">
+                    <h3>For Lecturers</h3>
+                    <p>Submit monthly claims, track status, and upload supporting documents</p>
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <h3>For Coordinators</h3>
+                    <p>Verify and review claims submitted by lecturers</p>
+                </div>
+                <div style="flex: 1; min-width: 250px;">
+                    <h3>For Managers</h3>
+                    <p>Approve verified claims and manage the claims process</p>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
+                <a href="@Url.Action("Login", "Home")" class="btn btn-primary" style="padding: 0.8rem 2rem;">Login</a>
+                <a href="@Url.Action("Register", "Home")" class="btn btn-ghost" style="padding: 0.8rem 2rem;">Register</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
