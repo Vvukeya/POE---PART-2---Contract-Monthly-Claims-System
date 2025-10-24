@@ -1,0 +1,68 @@
+﻿@{
+    ViewData["Title"] = "Login Page";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"] – CMCS</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>Contract Monthly Claim System</h1>
+        <a href="@Url.Action("Index", "Home")" class="signout-btn">Home</a>
+    </header>
+
+    <div class="form-container">
+        <div class="form-card">
+            <h2>Login</h2>
+
+            @if (TempData["Success"] != null)
+            {
+                <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    @TempData["Success"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    @TempData["Error"]
+                </div>
+            }
+
+            <form method="post" asp-action="Login">
+                @Html.AntiForgeryToken()
+
+                <div class="form-group">
+                    <label for="role">Login As</label>
+                    <select id="role" name="role" required>
+                        <option value="">-- Select Role --</option>
+                        <option value="Lecturer">Lecturer</option>
+                        <option value="Coordinator">Programme Coordinator</option>
+                        <option value="Manager">Academic Manager</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input id="email" type="email" name="email" placeholder="you@example.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" name="password" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%;">Sign In</button>
+            </form>
+
+            <p style="text-align: center; margin-top: 20px;">
+                Don't have an account? <a href="@Url.Action("Register", "Home")">Click here to register</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>
