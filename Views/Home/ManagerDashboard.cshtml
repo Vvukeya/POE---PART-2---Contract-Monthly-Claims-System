@@ -1,0 +1,88 @@
+﻿@{
+    ViewData["Title"] = "Academic Manager Dashboard";
+    var userName = ViewBag.UserName;
+    var totalVerifiedClaims = ViewBag.TotalVerifiedClaims ?? 0;
+    var totalApprovedClaims = ViewBag.TotalApprovedClaims ?? 0;
+    var totalRejectedClaims = ViewBag.TotalRejectedClaims ?? 0;
+    var totalClaims = ViewBag.TotalClaims ?? 0;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"] – CMCS</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>CMCS – Academic Manager Dashboard</h1>
+        <a href="@Url.Action("Logout", "Home")" class="signout-btn">Sign Out</a>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="@Url.Action("ManagerQueue", "Home")">Approve Claims</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Welcome Card -->
+        <div class="card">
+            <h2>Welcome, @userName!</h2>
+            <p><strong>Role:</strong> Academic Manager</p>
+            <p>
+                As an Academic Manager, you play a key role in the final approval of claims,
+                ensuring fairness, and maintaining accountability across all departments.
+            </p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="card">
+                <h3>Total Claims</h3>
+                <p style="font-size: 2rem; color: #1976d2; font-weight: bold;">@totalClaims</p>
+                <p>All claims in system</p>
+            </div>
+
+            <div class="card">
+                <h3>Ready for Approval</h3>
+                <p style="font-size: 2rem; color: #0288d1; font-weight: bold;">@totalVerifiedClaims</p>
+                <p>Awaiting your final approval</p>
+            </div>
+
+            <div class="card">
+                <h3>Approved</h3>
+                <p style="font-size: 2rem; color: #2e7d32; font-weight: bold;">@totalApprovedClaims</p>
+                <p>Successfully approved</p>
+            </div>
+
+            <div class="card">
+                <h3>Rejected</h3>
+                <p style="font-size: 2rem; color: #d32f2f; font-weight: bold;">@totalRejectedClaims</p>
+                <p>Not approved</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h2>Quick Actions</h2>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <a href="@Url.Action("ManagerQueue", "Home")" class="btn btn-primary">Review Verified Claims</a>
+            </div>
+        </div>
+
+        <!-- Guidelines -->
+        <div class="card">
+            <h2>Approval Guidelines</h2>
+            <ul style="list-style-type: disc; margin-left: 20px;">
+                <li>Review claims that have been verified by Programme Coordinators</li>
+                <li>Ensure all verification steps have been completed</li>
+                <li>Check that claims comply with institutional policies</li>
+                <li>Provide clear justification for any rejections</li>
+                <li>Approved claims will be processed for payment</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
