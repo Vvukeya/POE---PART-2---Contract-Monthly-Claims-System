@@ -1,0 +1,100 @@
+﻿@model POE___PART_2___Contract_Monthly_Claims_System.Models.Claim
+@{
+    ViewData["Title"] = "Lecturer – Submit Claim";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>CMCS – Lecturer</h1>
+        <a href="@Url.Action("Logout", "Home")" class="signout-btn">Sign Out</a>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="@Url.Action("LecturerDashboard", "Home")">Dashboard</a></li>
+            <li><a href="@Url.Action("LecturerTrack", "Home")">Track My Claims</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>Submit Monthly Claim</h2>
+
+            @if (TempData["Success"] != null)
+            {
+                <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    @TempData["Success"]
+                </div>
+            }
+
+            <form asp-action="LecturerSubmitClaim" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+                <div class="row">
+                    <div>
+                        <label asp-for="Month">Period Month</label>
+                        <input asp-for="Month" type="number" min="1" max="12" placeholder="e.g., 8 for August" required>
+                        <span asp-validation-for="Month" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Year">Period Year</label>
+                        <input asp-for="Year" type="number" min="2024" max="2030" placeholder="e.g., 2024" required>
+                        <span asp-validation-for="Year" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="row-3">
+                    <div>
+                        <label asp-for="ModuleCode">Module Code</label>
+                        <input asp-for="ModuleCode" placeholder="e.g., PROG6212" required>
+                        <span asp-validation-for="ModuleCode" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Hours">Hours Worked</label>
+                        <input asp-for="Hours" type="number" step="0.1" placeholder="e.g., 36.5" required>
+                        <span asp-validation-for="Hours" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="HourlyRate">Hourly Rate (R)</label>
+                        <input asp-for="HourlyRate" type="number" step="0.01" placeholder="e.g., 250.00" required>
+                        <span asp-validation-for="HourlyRate" class="text-danger"></span>
+                    </div>
+                    <div>
+                        <label asp-for="Sessions">Number of Sessions</label>
+                        <input asp-for="Sessions" type="number" placeholder="e.g., 12" required>
+                        <span asp-validation-for="Sessions" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <label asp-for="Description">Work Description</label>
+                <textarea asp-for="Description" placeholder="Describe the work done: tutorials, marking, consultations, etc." required rows="4"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+
+                <!-- Upload Documents -->
+                <div style="margin-top:20px">
+                    <label>Supporting Documents (PDF, DOCX, XLSX - Max 5MB each)</label>
+                    <input type="file" name="files" multiple accept=".pdf,.docx,.xlsx">
+                    <small>You can upload multiple files. Supported formats: PDF, Word documents, Excel spreadsheets.</small>
+                </div>
+
+                <!-- Submit Button -->
+                <div style="margin-top:20px; display:flex; gap:10px">
+                    <a href="@Url.Action("LecturerDashboard", "Home")" class="btn btn-ghost">Cancel</a>
+                    <button class="btn btn-primary" type="submit">Submit Claim</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+    }
+</body>
+</html>
