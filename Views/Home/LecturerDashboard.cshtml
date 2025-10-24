@@ -1,0 +1,130 @@
+﻿@{
+    ViewData["Title"] = "Lecturer Dashboard";
+    var userName = ViewBag.UserName;
+    var userEmail = ViewBag.UserEmail;
+    var totalClaims = ViewBag.TotalClaims ?? 0;
+    var pendingClaims = ViewBag.PendingClaims ?? 0;
+    var approvedClaims = ViewBag.ApprovedClaims ?? 0;
+    var recentClaims = ViewBag.RecentClaims as List<Claim> ?? new List<Claim>();
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"] – CMCS</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>CMCS – Lecturer Dashboard</h1>
+        <a href="@Url.Action("Logout", "Home")" class="signout-btn">Sign Out</a>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="@Url.Action("LecturerSubmitClaim", "Home")">Submit New Claim</a></li>
+            <li><a href="@Url.Action("LecturerTrack", "Home")">Track My Claims</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <!-- Welcome Card -->
+        <div class="card">
+            <h2>Welcome, @userName!</h2>
+            <p><strong>Email:</strong> @userEmail</p>
+            <p><strong>Role:</strong> Lecturer</p>
+            <p>
+                Welcome to your personal dashboard! This is where you can manage all your monthly claims,
+                track their progress, and stay updated with important information about your submissions.
+            </p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="card">
+                <h3>Total Claims</h3>
+                <p style="font-size: 2rem; color: #1976d2; font-weight: bold;">@totalClaims</p>
+                <p>All claims submitted</p>
+            </div>
+
+            <div class="card">
+                <h3>Pending Claims</h3>
+                <p style="font-size: 2rem; color: #f57c00; font-weight: bold;">@pendingClaims</p>
+                <p>Awaiting review</p>
+            </div>
+
+            <div class="card">
+                <h3>Approved Claims</h3>
+                <p style="font-size: 2rem; color: #2e7d32; font-weight: bold;">@approvedClaims</p>
+                <p>Successfully approved</p>
+            </div>
+        </div>
+
+        <!-- Recent Claims -->
+        <div class="card">
+            <h2>Recent Claims</h2>
+            @if (recentClaims.Any())
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Claim ID</th>
+                            <th>Period</th>
+                            <th>Amount</th>
+                            <th>Status</th>
+                            <th>Date Submitted</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var claim in recentClaims)
+                        {
+                            <tr>
+                                <td>#@claim.ClaimID</td>
+                                <td>@claim.Month/@claim.Year</td>
+                                <td>R @claim.TotalAmount.ToString("N2")</td>
+                                <td>
+                                    @if (claim.Status == "Pending")
+                                    {
+                                        <span class="badge badge-warn">@claim.Status</span>
+                                    }
+                                    else if (claim.Status == "Verified")
+                                    {
+                                        <span class="badge badge-info">@claim.Status</span>
+                                    }
+                                    else if (claim.Status == "Approved")
+                                    {
+                                        <span class="badge badge-primary">@claim.Status</span>
+                                    }
+                                    else if (claim.Status == "Rejected")
+                                    {
+                                        <span class="badge badge-success">@claim.Status</span>
+                                    }
+                                    else if (claim.Status == "Resubmitted")
+                                    {
+                                        <span class="badge badge-resubmitted">@claim.Status</span>
+                                    }
+                                </td>
+                                <td>@claim.SubmissionDate.ToString("dd MMM yyyy")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p>No claims submitted yet. <a href="@Url.Action("LecturerSubmitClaim", "Home")">Submit your first claim!</a></p>
+            }
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h2>Quick Actions</h2>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <a href="@Url.Action("LecturerSubmitClaim", "Home")" class="btn btn-primary">Submit New Claim</a>
+                <a href="@Url.Action("LecturerTrack", "Home")" class="btn btn-ghost">View All Claims</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
