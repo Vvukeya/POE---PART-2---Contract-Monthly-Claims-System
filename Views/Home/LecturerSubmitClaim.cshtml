@@ -34,6 +34,17 @@
                 </div>
             }
 
+            <!-- Display validation errors -->
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            }
+
             <form asp-action="LecturerSubmitClaim" method="post" enctype="multipart/form-data">
                 @Html.AntiForgeryToken()
 
@@ -79,8 +90,9 @@
 
                 <!-- Upload Documents -->
                 <div style="margin-top:20px">
-                    <label>Supporting Documents (PDF, DOCX, XLSX - Max 5MB each)</label>
-                    <input type="file" name="files" multiple accept=".pdf,.docx,.xlsx">
+                    <label>Supporting Documents (PDF, DOCX, XLSX - Max 5MB each) *</label>
+                    <input type="file" name="files" multiple accept=".pdf,.docx,.xlsx" required>
+                    <small style="color: #dc3545; font-weight: bold;">⚠️ At least one supporting document is required to submit your claim.</small>
                     <small>You can upload multiple files. Supported formats: PDF, Word documents, Excel spreadsheets.</small>
                 </div>
 
