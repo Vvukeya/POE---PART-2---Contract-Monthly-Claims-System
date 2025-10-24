@@ -185,6 +185,13 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
                         return RedirectToAction("Login");
                     }
 
+                    // Check if documents are provided
+                    if (files == null || files.Count == 0 || files.All(f => f.Length == 0))
+                    {
+                        ModelState.AddModelError("", "At least one supporting document is required to submit a claim.");
+                        return View(claim);
+                    }
+
                     claim.UserID = userId.Value;
                     claim.Status = "Pending";
                     claim.SubmissionDate = DateTime.Now;
@@ -241,7 +248,10 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
                         }
                     }
 
-                    TempData["Success"] = $"Claim submitted successfully! Your claim ID is #{claim.ClaimID}.";
+                    // Notify manager about new claim submission
+                    await NotifyManagerAboutNewClaim(claim.ClaimID);
+
+                    TempData["Success"] = $"Claim submitted successfully! Your claim ID is #{claim.ClaimID}. The manager has been notified.";
                     return RedirectToAction("LecturerTrack");
                 }
                 catch (Exception ex)
@@ -565,6 +575,13 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
 
                 if (claim != null)
                 {
+                    // Check if claim is verified by coordinator first
+                    if (claim.Status != "Verified")
+                    {
+                        TempData["Error"] = $"Claim #{claimId} must be verified by Program Coordinator before it can be approved.";
+                        return RedirectToAction("ManagerQueue");
+                    }
+
                     if (action == "approve")
                     {
                         await _queries.UpdateClaimStatusAsync(claimId, "Approved", notes);
@@ -601,6 +618,62 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
             }
 
             return RedirectToAction("ManagerQueue");
+        }
+
+        // View All Claims (for Coordinator and Manager)
+        public async Task<IActionResult> ViewAllClaims()
+        {
+            if (!IsUserLoggedIn("Coordinator") && !IsUserLoggedIn("Manager"))
+            {
+                TempData["Error"] = "Please login as Coordinator or Manager to access this page.";
+                return RedirectToAction("Login");
+            }
+
+            var userRole = HttpContext.Session.GetString("UserRole");
+            var allClaims = new List<Claim>();
+
+            if (userRole == "Coordinator" || userRole == "Manager")
+            {
+                // Get all claims for coordinators and managers to view
+                allClaims = await _queries.GetAllClaimsAsync();
+
+                // Load documents for each claim
+                foreach (var claim in allClaims)
+                {
+                    claim.Documents = await _queries.GetDocumentsByClaimIdAsync(claim.ClaimID);
+                }
+            }
+
+            ViewBag.UserRole = userRole;
+            return View(allClaims);
+        }
+
+        // Notify Manager about new claim
+        private async Task NotifyManagerAboutNewClaim(int claimId)
+        {
+            try
+            {
+                // You can implement various notification methods here:
+                // 1. Database notifications table
+                // 2. Email notifications
+                // 3. Internal messaging system
+
+                // For now, we'll log the notification
+                var claim = await _queries.GetClaimByIdAsync(claimId);
+                if (claim != null)
+                {
+                    _logger.LogInformation($"MANAGER NOTIFICATION: New claim #{claimId} submitted by {claim.User?.FirstName} {claim.User?.Surname} requires verification.");
+
+                    // You can add additional notification logic here:
+                    // - Send email to manager
+                    // - Create notification record in database
+                    // - Update dashboard counters
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending notification to manager");
+            }
         }
 
         // View Document in Browser
