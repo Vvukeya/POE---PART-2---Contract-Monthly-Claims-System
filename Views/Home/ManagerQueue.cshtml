@@ -1,0 +1,177 @@
+﻿@model List<POE___PART_2___Contract_Monthly_Claims_System.Models.Claim>
+@{
+    ViewData["Title"] = "Approve Claims – Manager Page";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>CMCS – Academic Manager</h1>
+        <a href="@Url.Action("Logout", "Home")" class="signout-btn">Sign Out</a>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="@Url.Action("ManagerDashboard", "Home")">Return to Dashboard</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>Claims to Approve</h2>
+
+            @if (TempData["Success"] != null)
+            {
+                <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    @TempData["Success"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    @TempData["Error"]
+                </div>
+            }
+
+            @if (!Model.Any())
+            {
+                <p>No verified claims ready for approval at this time.</p>
+            }
+            else
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Claim ID</th>
+                            <th>Lecturer</th>
+                            <th>Period</th>
+                            <th>Sessions</th>
+                            <th>Hours</th>
+                            <th>Hourly Rate</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Documents</th>
+                            <th>Date Submitted</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var claim in Model)
+                        {
+                            <tr>
+                                <td>#@claim.ClaimID</td>
+                                <td>@claim.User?.FirstName @claim.User?.Surname</td>
+                                <td>@claim.Month/@claim.Year</td>
+                                <td>@claim.Sessions</td>
+                                <td>@claim.Hours</td>
+                                <td>R @claim.HourlyRate.ToString("N2")</td>
+                                <td>R @claim.TotalAmount.ToString("N2")</td>
+                                <td><span class="badge badge-info">@claim.Status</span></td>
+                                <td>
+                                    @if (claim.Documents != null && claim.Documents.Any())
+                                    {
+                                        <div style="display: flex; flex-direction: column; gap: 5px;">
+                                            @foreach (var document in claim.Documents)
+                                            {
+                                                <div style="display: flex; gap: 5px; align-items: center;">
+                                                    <a href="@Url.Action("ViewDocument", "Home", new { documentId = document.DocumentID })"
+                                                       class="btn btn-ghost btn-sm"
+                                                       target="_blank"
+                                                       style="flex: 1; text-align: left; font-size: 0.8rem;">
+                                                        📎 View @document.FileName
+                                                    </a>
+                                                    <a href="@Url.Action("DownloadDocument", "Home", new { documentId = document.DocumentID })"
+                                                       class="btn btn-primary btn-sm"
+                                                       style="white-space: nowrap;">
+                                                        ⬇️
+                                                    </a>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <span>—</span>
+                                    }
+                                </td>
+                                <td>@claim.SubmissionDate.ToString("dd-MMM-yyyy HH:mm")</td>
+                                <td style="min-width: 200px;">
+                                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                                        <!-- Approve Button -->
+                                        <form method="post" action="@Url.Action("ManagerApproveClaim", "Home")" style="margin: 0;">
+                                            <input type="hidden" name="claimId" value="@claim.ClaimID" />
+                                            <input type="hidden" name="action" value="approve" />
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-approve"
+                                                    onclick="return confirm('Are you sure you want to approve claim #@claim.ClaimID?')"
+                                                    style="width: 100%; margin: 0;">
+                                                Approve
+                                            </button>
+                                        </form>
+
+                                        <!-- Reject Button with Reason -->
+                                        <button type="button" onclick="showRejectForm(@claim.ClaimID)" class="btn btn-decline" style="width: 100%; margin: 0;">
+                                            Reject
+                                        </button>
+
+                                        <!-- Reject Form (Hidden by default) -->
+                                        <div id="rejectForm-@claim.ClaimID" style="display: none; margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 5px; border: 1px solid #ddd;">
+                                            <form method="post" action="@Url.Action("ManagerApproveClaim", "Home")">
+                                                <input type="hidden" name="claimId" value="@claim.ClaimID" />
+                                                <input type="hidden" name="action" value="reject" />
+                                                @Html.AntiForgeryToken()
+                                                <label for="notes-@claim.ClaimID"><strong>Reason for rejection:</strong></label>
+                                                <textarea id="notes-@claim.ClaimID" name="notes" placeholder="Please provide reason for rejection..." required
+                                                  style="width: 100%; margin: 5px 0; padding: 8px; border: 1px solid #ccc; border-radius: 4px; resize: vertical; min-height: 60px;"></textarea>
+                                                <div style="display: flex; gap: 5px;">
+                                                    <button type="submit" class="btn btn-decline" style="flex: 1;">Confirm Reject</button>
+                                                    <button type="button" onclick="hideRejectForm(@claim.ClaimID)" class="btn btn-ghost" style="flex: 1;">Cancel</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+    <script>
+        function showRejectForm(claimId) {
+            // Hide all other reject forms first
+            var allRejectForms = document.querySelectorAll('[id^="rejectForm-"]');
+            allRejectForms.forEach(function(form) {
+                form.style.display = 'none';
+            });
+
+            // Show the specific reject form
+            document.getElementById('rejectForm-' + claimId).style.display = 'block';
+        }
+
+        function hideRejectForm(claimId) {
+            document.getElementById('rejectForm-' + claimId).style.display = 'none';
+        }
+
+        // Hide reject forms when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('[id^="rejectForm-"]') && !event.target.matches('.btn-decline:not([type="submit"])')) {
+                var allRejectForms = document.querySelectorAll('[id^="rejectForm-"]');
+                allRejectForms.forEach(function(form) {
+                    form.style.display = 'none';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
