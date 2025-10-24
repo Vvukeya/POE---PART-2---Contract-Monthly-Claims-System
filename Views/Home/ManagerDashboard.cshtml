@@ -23,6 +23,7 @@
     <nav>
         <ul>
             <li><a href="@Url.Action("ManagerQueue", "Home")">Approve Claims</a></li>
+            <li><a href="@Url.Action("ViewAllClaims", "Home")">View All Claims</a></li>
         </ul>
     </nav>
 
@@ -69,6 +70,7 @@
             <h2>Quick Actions</h2>
             <div style="display: flex; gap: 15px; flex-wrap: wrap;">
                 <a href="@Url.Action("ManagerQueue", "Home")" class="btn btn-primary">Review Verified Claims</a>
+                <a href="@Url.Action("ViewAllClaims", "Home")" class="btn btn-ghost">View All Claims</a>
             </div>
         </div>
 
