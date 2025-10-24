@@ -1,0 +1,109 @@
+﻿@model POE___PART_2___Contract_Monthly_Claims_System.Models.User
+@{
+    ViewData["Title"] = "Register";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"] – CMCS</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>Contract Monthly Claim System</h1>
+        <a href="@Url.Action("Index", "Home")" class="signout-btn">Home</a>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="@Url.Action("Index", "Home")">Home</a></li>
+            <li><a href="@Url.Action("Login", "Home")">Login</a></li>
+        </ul>
+    </nav>
+
+    <div class="form-container">
+        <div class="form-card">
+            <h2>Create Your Account</h2>
+
+            @if (TempData["Success"] != null)
+            {
+                <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    @TempData["Success"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                    @TempData["Error"]
+                </div>
+            }
+
+            <form method="post" asp-action="Register">
+                @Html.AntiForgeryToken()
+
+                <div class="form-group">
+                    <label asp-for="Role">Register As *</label>
+                    <select asp-for="Role" required>
+                        <option value="">-- Select Your Role --</option>
+                        <option value="Lecturer">Lecturer</option>
+                        <option value="Coordinator">Programme Coordinator</option>
+                        <option value="Manager">Academic Manager</option>
+                    </select>
+                    <span asp-validation-for="Role" class="text-danger"></span>
+                </div>
+
+                <div class="row">
+                    <div class="form-group">
+                        <label asp-for="FirstName">First Name *</label>
+                        <input asp-for="FirstName" type="text" placeholder="Enter your first name" required>
+                        <span asp-validation-for="FirstName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Surname">Surname *</label>
+                        <input asp-for="Surname" type="text" placeholder="Enter your surname" required>
+                        <span asp-validation-for="Surname" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Email">Email Address *</label>
+                    <input asp-for="Email" type="email" placeholder="Enter your email address" required>
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password">Password *</label>
+                    <input asp-for="Password" type="password" placeholder="Create a password" required>
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="PhoneNumber">Phone Number *</label>
+                    <input asp-for="PhoneNumber" type="tel" placeholder="Enter your phone number" required>
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Address">Address *</label>
+                    <textarea asp-for="Address" rows="3" placeholder="Enter your full address" required></textarea>
+                    <span asp-validation-for="Address" class="text-danger"></span>
+                </div>
+
+                <button type="submit" class="btn-primary" style="width: 100%;">Create Account</button>
+            </form>
+
+            <p style="margin-top: 20px; text-align: center;">
+                Already have an account? <a href="@Url.Action("Login", "Home")">Click here to login</a>
+            </p>
+        </div>
+    </div>
+
+    @section Scripts {
+        <partial name="_ValidationScriptsPartial" />
+    }
+</body>
+</html>
