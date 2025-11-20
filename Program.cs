@@ -35,6 +35,12 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// HR routes
+app.MapControllerRoute(
+    name: "hr",
+    pattern: "HR/{action=HRDashboard}",
+    defaults: new { controller = "HR" });
+
 // Initialize database on startup
 try
 {
