@@ -19,6 +19,27 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
             return _dbConnection.TestConnection();
         }
 
+        public string GetConnectionString()
+        {
+            return _dbConnection.ConnectionString;
+        }
+
+        // Helper method to check if a column exists
+        private async Task<bool> ColumnExistsAsync(SqlConnection connection, string tableName, string columnName)
+        {
+            string query = @"
+                SELECT COUNT(*) 
+                FROM INFORMATION_SCHEMA.COLUMNS 
+                WHERE TABLE_NAME = @TableName AND COLUMN_NAME = @ColumnName";
+
+            using (var command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@TableName", tableName);
+                command.Parameters.AddWithValue("@ColumnName", columnName);
+                return (int)await command.ExecuteScalarAsync() > 0;
+            }
+        }
+
         // User Queries
         public async Task<User> GetUserByCredentialsAsync(string email, string password, string role)
         {
@@ -39,7 +60,7 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                         {
                             return new User
                             {
-                                UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
+                                UserID = reader.GetString(reader.GetOrdinal("UserID")),
                                 Role = reader.GetString(reader.GetOrdinal("Role")),
                                 FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
                                 Surname = reader.GetString(reader.GetOrdinal("Surname")),
@@ -61,11 +82,16 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
             using (var connection = new SqlConnection(_dbConnection.ConnectionString))
             {
                 await connection.OpenAsync();
-                string query = @"INSERT INTO Users (Role, FirstName, Surname, Address, Email, Password, PhoneNumber, RegistrationDate) 
-                               VALUES (@Role, @FirstName, @Surname, @Address, @Email, @Password, @PhoneNumber, @RegistrationDate)";
+
+                // Generate custom user ID based on role
+                string userID = await GenerateCustomUserIDAsync(connection, user.Role);
+
+                string query = @"INSERT INTO Users (UserID, Role, FirstName, Surname, Address, Email, Password, PhoneNumber, RegistrationDate) 
+                               VALUES (@UserID, @Role, @FirstName, @Surname, @Address, @Email, @Password, @PhoneNumber, @RegistrationDate)";
 
                 using (var command = new SqlCommand(query, connection))
                 {
+                    command.Parameters.AddWithValue("@UserID", userID);
                     command.Parameters.AddWithValue("@Role", user.Role);
                     command.Parameters.AddWithValue("@FirstName", user.FirstName);
                     command.Parameters.AddWithValue("@Surname", user.Surname);
@@ -77,6 +103,33 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
 
                     return await command.ExecuteNonQueryAsync() > 0;
                 }
+            }
+        }
+
+        // Add this method to generate custom user IDs
+        private async Task<string> GenerateCustomUserIDAsync(SqlConnection connection, string role)
+        {
+            string prefix = role switch
+            {
+                "Lecturer" => "L",
+                "Coordinator" => "PC",
+                "Manager" => "AM",
+                "HR" => "HR",
+                _ => "U"
+            };
+
+            // Get the next sequence number for this role
+            string query = $@"
+                SELECT COUNT(*) + 1 
+                FROM Users 
+                WHERE Role = @Role";
+
+            using (var command = new SqlCommand(query, connection))
+            {
+                command.Parameters.AddWithValue("@Role", role);
+                var nextNumber = Convert.ToInt32(await command.ExecuteScalarAsync());
+
+                return $"{prefix}{nextNumber:D3}"; // Format as L001, PC001, etc.
             }
         }
 
@@ -95,7 +148,7 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
             }
         }
 
-        public async Task<User> GetUserByIdAsync(int userId)
+        public async Task<User> GetUserByIdAsync(string userId)
         {
             using (var connection = new SqlConnection(_dbConnection.ConnectionString))
             {
@@ -112,7 +165,7 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                         {
                             return new User
                             {
-                                UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
+                                UserID = reader.GetString(reader.GetOrdinal("UserID")),
                                 Role = reader.GetString(reader.GetOrdinal("Role")),
                                 FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
                                 Surname = reader.GetString(reader.GetOrdinal("Surname")),
@@ -160,14 +213,21 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
             }
         }
 
-        public async Task<List<Claim>> GetClaimsByUserIdAsync(int userId)
+        public async Task<List<Claim>> GetClaimsByUserIdAsync(string userId)
         {
             var claims = new List<Claim>();
 
             using (var connection = new SqlConnection(_dbConnection.ConnectionString))
             {
                 await connection.OpenAsync();
-                string query = @"SELECT c.*, u.FirstName, u.Surname, u.Email 
+
+                // Check if new columns exist
+                bool paymentDateExists = await ColumnExistsAsync(connection, "Claims", "PaymentDate");
+                bool paidByExists = await ColumnExistsAsync(connection, "Claims", "PaidBy");
+                bool verifiedByExists = await ColumnExistsAsync(connection, "Claims", "VerifiedBy");
+                bool approvedByExists = await ColumnExistsAsync(connection, "Claims", "ApprovedBy");
+
+                string query = @"SELECT c.*, u.UserID as User_UserID, u.FirstName, u.Surname, u.Email, u.Role 
                                FROM Claims c 
                                INNER JOIN Users u ON c.UserID = u.UserID 
                                WHERE c.UserID = @UserID 
@@ -181,7 +241,6 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                     {
                         while (await reader.ReadAsync())
                         {
-                            // Fix: Convert decimal to double properly
                             var hoursValue = reader.GetValue(reader.GetOrdinal("Hours"));
                             var hourlyRateValue = reader.GetValue(reader.GetOrdinal("HourlyRate"));
 
@@ -194,10 +253,10 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                             if (hourlyRateValue != DBNull.Value)
                                 hourlyRate = Convert.ToDouble(hourlyRateValue);
 
-                            claims.Add(new Claim
+                            var claim = new Claim
                             {
                                 ClaimID = reader.GetInt32(reader.GetOrdinal("ClaimID")),
-                                UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
+                                UserID = reader.GetString(reader.GetOrdinal("UserID")),
                                 Month = reader.GetInt32(reader.GetOrdinal("Month")),
                                 Year = reader.GetInt32(reader.GetOrdinal("Year")),
                                 ModuleCode = reader.GetString(reader.GetOrdinal("ModuleCode")),
@@ -211,11 +270,40 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                                 SubmissionDate = reader.GetDateTime(reader.GetOrdinal("SubmissionDate")),
                                 User = new User
                                 {
+                                    UserID = reader.GetString(reader.GetOrdinal("User_UserID")),
                                     FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
                                     Surname = reader.GetString(reader.GetOrdinal("Surname")),
-                                    Email = reader.GetString(reader.GetOrdinal("Email"))
+                                    Email = reader.GetString(reader.GetOrdinal("Email")),
+                                    Role = reader.GetString(reader.GetOrdinal("Role"))
                                 }
-                            });
+                            };
+
+                            // Safely handle new columns
+                            if (paymentDateExists)
+                            {
+                                claim.PaymentDate = reader.IsDBNull(reader.GetOrdinal("PaymentDate")) ?
+                                    null : reader.GetDateTime(reader.GetOrdinal("PaymentDate"));
+                            }
+
+                            if (paidByExists)
+                            {
+                                claim.PaidBy = reader.IsDBNull(reader.GetOrdinal("PaidBy")) ?
+                                    null : reader.GetString(reader.GetOrdinal("PaidBy"));
+                            }
+
+                            if (verifiedByExists)
+                            {
+                                claim.VerifiedBy = reader.IsDBNull(reader.GetOrdinal("VerifiedBy")) ?
+                                    null : reader.GetString(reader.GetOrdinal("VerifiedBy"));
+                            }
+
+                            if (approvedByExists)
+                            {
+                                claim.ApprovedBy = reader.IsDBNull(reader.GetOrdinal("ApprovedBy")) ?
+                                    null : reader.GetString(reader.GetOrdinal("ApprovedBy"));
+                            }
+
+                            claims.Add(claim);
                         }
                     }
                 }
@@ -223,6 +311,7 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
             return claims;
         }
 
+        // Get pending claims with user data
         public async Task<List<Claim>> GetPendingClaimsAsync()
         {
             var claims = new List<Claim>();
@@ -230,7 +319,14 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
             using (var connection = new SqlConnection(_dbConnection.ConnectionString))
             {
                 await connection.OpenAsync();
-                string query = @"SELECT c.*, u.FirstName, u.Surname, u.Email 
+
+                // Check if new columns exist
+                bool paymentDateExists = await ColumnExistsAsync(connection, "Claims", "PaymentDate");
+                bool paidByExists = await ColumnExistsAsync(connection, "Claims", "PaidBy");
+                bool verifiedByExists = await ColumnExistsAsync(connection, "Claims", "VerifiedBy");
+                bool approvedByExists = await ColumnExistsAsync(connection, "Claims", "ApprovedBy");
+
+                string query = @"SELECT c.*, u.UserID as User_UserID, u.FirstName, u.Surname, u.Email, u.Role 
                                FROM Claims c 
                                INNER JOIN Users u ON c.UserID = u.UserID 
                                WHERE c.Status IN ('Pending', 'Resubmitted') 
@@ -241,7 +337,6 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                 {
                     while (await reader.ReadAsync())
                     {
-                        // Fix: Convert decimal to double properly
                         var hoursValue = reader.GetValue(reader.GetOrdinal("Hours"));
                         var hourlyRateValue = reader.GetValue(reader.GetOrdinal("HourlyRate"));
 
@@ -254,10 +349,10 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                         if (hourlyRateValue != DBNull.Value)
                             hourlyRate = Convert.ToDouble(hourlyRateValue);
 
-                        claims.Add(new Claim
+                        var claim = new Claim
                         {
                             ClaimID = reader.GetInt32(reader.GetOrdinal("ClaimID")),
-                            UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
+                            UserID = reader.GetString(reader.GetOrdinal("UserID")),
                             Month = reader.GetInt32(reader.GetOrdinal("Month")),
                             Year = reader.GetInt32(reader.GetOrdinal("Year")),
                             ModuleCode = reader.GetString(reader.GetOrdinal("ModuleCode")),
@@ -271,17 +366,47 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                             SubmissionDate = reader.GetDateTime(reader.GetOrdinal("SubmissionDate")),
                             User = new User
                             {
+                                UserID = reader.GetString(reader.GetOrdinal("User_UserID")),
                                 FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
                                 Surname = reader.GetString(reader.GetOrdinal("Surname")),
-                                Email = reader.GetString(reader.GetOrdinal("Email"))
+                                Email = reader.GetString(reader.GetOrdinal("Email")),
+                                Role = reader.GetString(reader.GetOrdinal("Role"))
                             }
-                        });
+                        };
+
+                        // Safely handle new columns
+                        if (paymentDateExists)
+                        {
+                            claim.PaymentDate = reader.IsDBNull(reader.GetOrdinal("PaymentDate")) ?
+                                null : reader.GetDateTime(reader.GetOrdinal("PaymentDate"));
+                        }
+
+                        if (paidByExists)
+                        {
+                            claim.PaidBy = reader.IsDBNull(reader.GetOrdinal("PaidBy")) ?
+                                null : reader.GetString(reader.GetOrdinal("PaidBy"));
+                        }
+
+                        if (verifiedByExists)
+                        {
+                            claim.VerifiedBy = reader.IsDBNull(reader.GetOrdinal("VerifiedBy")) ?
+                                null : reader.GetString(reader.GetOrdinal("VerifiedBy"));
+                        }
+
+                        if (approvedByExists)
+                        {
+                            claim.ApprovedBy = reader.IsDBNull(reader.GetOrdinal("ApprovedBy")) ?
+                                null : reader.GetString(reader.GetOrdinal("ApprovedBy"));
+                        }
+
+                        claims.Add(claim);
                     }
                 }
             }
             return claims;
         }
 
+        // Get verified claims with user data
         public async Task<List<Claim>> GetVerifiedClaimsAsync()
         {
             var claims = new List<Claim>();
@@ -289,7 +414,14 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
             using (var connection = new SqlConnection(_dbConnection.ConnectionString))
             {
                 await connection.OpenAsync();
-                string query = @"SELECT c.*, u.FirstName, u.Surname, u.Email 
+
+                // Check if new columns exist
+                bool paymentDateExists = await ColumnExistsAsync(connection, "Claims", "PaymentDate");
+                bool paidByExists = await ColumnExistsAsync(connection, "Claims", "PaidBy");
+                bool verifiedByExists = await ColumnExistsAsync(connection, "Claims", "VerifiedBy");
+                bool approvedByExists = await ColumnExistsAsync(connection, "Claims", "ApprovedBy");
+
+                string query = @"SELECT c.*, u.UserID as User_UserID, u.FirstName, u.Surname, u.Email, u.Role 
                                FROM Claims c 
                                INNER JOIN Users u ON c.UserID = u.UserID 
                                WHERE c.Status = 'Verified' 
@@ -300,7 +432,6 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                 {
                     while (await reader.ReadAsync())
                     {
-                        // Fix: Convert decimal to double properly
                         var hoursValue = reader.GetValue(reader.GetOrdinal("Hours"));
                         var hourlyRateValue = reader.GetValue(reader.GetOrdinal("HourlyRate"));
 
@@ -313,10 +444,10 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                         if (hourlyRateValue != DBNull.Value)
                             hourlyRate = Convert.ToDouble(hourlyRateValue);
 
-                        claims.Add(new Claim
+                        var claim = new Claim
                         {
                             ClaimID = reader.GetInt32(reader.GetOrdinal("ClaimID")),
-                            UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
+                            UserID = reader.GetString(reader.GetOrdinal("UserID")),
                             Month = reader.GetInt32(reader.GetOrdinal("Month")),
                             Year = reader.GetInt32(reader.GetOrdinal("Year")),
                             ModuleCode = reader.GetString(reader.GetOrdinal("ModuleCode")),
@@ -330,17 +461,47 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                             SubmissionDate = reader.GetDateTime(reader.GetOrdinal("SubmissionDate")),
                             User = new User
                             {
+                                UserID = reader.GetString(reader.GetOrdinal("User_UserID")),
                                 FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
                                 Surname = reader.GetString(reader.GetOrdinal("Surname")),
-                                Email = reader.GetString(reader.GetOrdinal("Email"))
+                                Email = reader.GetString(reader.GetOrdinal("Email")),
+                                Role = reader.GetString(reader.GetOrdinal("Role"))
                             }
-                        });
+                        };
+
+                        // Safely handle new columns
+                        if (paymentDateExists)
+                        {
+                            claim.PaymentDate = reader.IsDBNull(reader.GetOrdinal("PaymentDate")) ?
+                                null : reader.GetDateTime(reader.GetOrdinal("PaymentDate"));
+                        }
+
+                        if (paidByExists)
+                        {
+                            claim.PaidBy = reader.IsDBNull(reader.GetOrdinal("PaidBy")) ?
+                                null : reader.GetString(reader.GetOrdinal("PaidBy"));
+                        }
+
+                        if (verifiedByExists)
+                        {
+                            claim.VerifiedBy = reader.IsDBNull(reader.GetOrdinal("VerifiedBy")) ?
+                                null : reader.GetString(reader.GetOrdinal("VerifiedBy"));
+                        }
+
+                        if (approvedByExists)
+                        {
+                            claim.ApprovedBy = reader.IsDBNull(reader.GetOrdinal("ApprovedBy")) ?
+                                null : reader.GetString(reader.GetOrdinal("ApprovedBy"));
+                        }
+
+                        claims.Add(claim);
                     }
                 }
             }
             return claims;
         }
 
+        // Get all claims with user data
         public async Task<List<Claim>> GetAllClaimsAsync()
         {
             var claims = new List<Claim>();
@@ -348,7 +509,14 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
             using (var connection = new SqlConnection(_dbConnection.ConnectionString))
             {
                 await connection.OpenAsync();
-                string query = @"SELECT c.*, u.FirstName, u.Surname, u.Email 
+
+                // Check if new columns exist
+                bool paymentDateExists = await ColumnExistsAsync(connection, "Claims", "PaymentDate");
+                bool paidByExists = await ColumnExistsAsync(connection, "Claims", "PaidBy");
+                bool verifiedByExists = await ColumnExistsAsync(connection, "Claims", "VerifiedBy");
+                bool approvedByExists = await ColumnExistsAsync(connection, "Claims", "ApprovedBy");
+
+                string query = @"SELECT c.*, u.UserID as User_UserID, u.FirstName, u.Surname, u.Email, u.Role 
                                FROM Claims c 
                                INNER JOIN Users u ON c.UserID = u.UserID 
                                ORDER BY c.SubmissionDate DESC";
@@ -358,7 +526,6 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                 {
                     while (await reader.ReadAsync())
                     {
-                        // Fix: Convert decimal to double properly
                         var hoursValue = reader.GetValue(reader.GetOrdinal("Hours"));
                         var hourlyRateValue = reader.GetValue(reader.GetOrdinal("HourlyRate"));
 
@@ -371,10 +538,10 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                         if (hourlyRateValue != DBNull.Value)
                             hourlyRate = Convert.ToDouble(hourlyRateValue);
 
-                        claims.Add(new Claim
+                        var claim = new Claim
                         {
                             ClaimID = reader.GetInt32(reader.GetOrdinal("ClaimID")),
-                            UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
+                            UserID = reader.GetString(reader.GetOrdinal("UserID")),
                             Month = reader.GetInt32(reader.GetOrdinal("Month")),
                             Year = reader.GetInt32(reader.GetOrdinal("Year")),
                             ModuleCode = reader.GetString(reader.GetOrdinal("ModuleCode")),
@@ -388,30 +555,112 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                             SubmissionDate = reader.GetDateTime(reader.GetOrdinal("SubmissionDate")),
                             User = new User
                             {
+                                UserID = reader.GetString(reader.GetOrdinal("User_UserID")),
                                 FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
                                 Surname = reader.GetString(reader.GetOrdinal("Surname")),
-                                Email = reader.GetString(reader.GetOrdinal("Email"))
+                                Email = reader.GetString(reader.GetOrdinal("Email")),
+                                Role = reader.GetString(reader.GetOrdinal("Role"))
                             }
-                        });
+                        };
+
+                        // Safely handle new columns
+                        if (paymentDateExists)
+                        {
+                            claim.PaymentDate = reader.IsDBNull(reader.GetOrdinal("PaymentDate")) ?
+                                null : reader.GetDateTime(reader.GetOrdinal("PaymentDate"));
+                        }
+
+                        if (paidByExists)
+                        {
+                            claim.PaidBy = reader.IsDBNull(reader.GetOrdinal("PaidBy")) ?
+                                null : reader.GetString(reader.GetOrdinal("PaidBy"));
+                        }
+
+                        if (verifiedByExists)
+                        {
+                            claim.VerifiedBy = reader.IsDBNull(reader.GetOrdinal("VerifiedBy")) ?
+                                null : reader.GetString(reader.GetOrdinal("VerifiedBy"));
+                        }
+
+                        if (approvedByExists)
+                        {
+                            claim.ApprovedBy = reader.IsDBNull(reader.GetOrdinal("ApprovedBy")) ?
+                                null : reader.GetString(reader.GetOrdinal("ApprovedBy"));
+                        }
+
+                        claims.Add(claim);
                     }
                 }
             }
             return claims;
         }
 
-        public async Task<bool> UpdateClaimStatusAsync(int claimId, string status, string correctionNotes = null)
+        // Updated UpdateClaimStatusAsync method with verifiedBy and approvedBy parameters
+        public async Task<bool> UpdateClaimStatusAsync(int claimId, string status, string correctionNotes = null, string verifiedBy = null, string approvedBy = null)
         {
             using (var connection = new SqlConnection(_dbConnection.ConnectionString))
             {
                 await connection.OpenAsync();
+
+                // Check if new columns exist
+                bool verifiedByExists = await ColumnExistsAsync(connection, "Claims", "VerifiedBy");
+                bool approvedByExists = await ColumnExistsAsync(connection, "Claims", "ApprovedBy");
+
                 string query = @"UPDATE Claims SET Status = @Status, 
-                               CorrectionNotes = @CorrectionNotes 
-                               WHERE ClaimID = @ClaimID";
+                               CorrectionNotes = @CorrectionNotes";
+
+                if (verifiedByExists && verifiedBy != null)
+                {
+                    query += ", VerifiedBy = @VerifiedBy";
+                }
+
+                if (approvedByExists && approvedBy != null)
+                {
+                    query += ", ApprovedBy = @ApprovedBy";
+                }
+
+                query += " WHERE ClaimID = @ClaimID";
 
                 using (var command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@Status", status);
                     command.Parameters.AddWithValue("@CorrectionNotes", correctionNotes ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@ClaimID", claimId);
+
+                    if (verifiedByExists && verifiedBy != null)
+                    {
+                        command.Parameters.AddWithValue("@VerifiedBy", verifiedBy);
+                    }
+
+                    if (approvedByExists && approvedBy != null)
+                    {
+                        command.Parameters.AddWithValue("@ApprovedBy", approvedBy);
+                    }
+
+                    return await command.ExecuteNonQueryAsync() > 0;
+                }
+            }
+        }
+
+        // Keep the original method for backward compatibility
+        public async Task<bool> UpdateClaimStatusAsync(int claimId, string status, string correctionNotes = null)
+        {
+            return await UpdateClaimStatusAsync(claimId, status, correctionNotes, null, null);
+        }
+
+        public async Task<bool> UpdateClaimPaymentStatusAsync(int claimId, string status, string paidBy)
+        {
+            using (var connection = new SqlConnection(_dbConnection.ConnectionString))
+            {
+                await connection.OpenAsync();
+                string query = @"UPDATE Claims SET Status = @Status, PaymentDate = @PaymentDate, PaidBy = @PaidBy 
+                       WHERE ClaimID = @ClaimID";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Status", status);
+                    command.Parameters.AddWithValue("@PaymentDate", DateTime.Now);
+                    command.Parameters.AddWithValue("@PaidBy", paidBy);
                     command.Parameters.AddWithValue("@ClaimID", claimId);
 
                     return await command.ExecuteNonQueryAsync() > 0;
@@ -450,28 +699,34 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
             }
         }
 
-        public async Task<Claim> GetClaimByIdAsync(int claimId, int? userId = null)
+        public async Task<Claim> GetClaimByIdAsync(int claimId, string userId = null)
         {
             using (var connection = new SqlConnection(_dbConnection.ConnectionString))
             {
                 await connection.OpenAsync();
-                string query = @"SELECT c.*, u.FirstName, u.Surname, u.Email 
+
+                // Check if new columns exist
+                bool paymentDateExists = await ColumnExistsAsync(connection, "Claims", "PaymentDate");
+                bool paidByExists = await ColumnExistsAsync(connection, "Claims", "PaidBy");
+                bool verifiedByExists = await ColumnExistsAsync(connection, "Claims", "VerifiedBy");
+                bool approvedByExists = await ColumnExistsAsync(connection, "Claims", "ApprovedBy");
+
+                string query = @"SELECT c.*, u.UserID as User_UserID, u.FirstName, u.Surname, u.Email, u.Role 
                                FROM Claims c 
                                INNER JOIN Users u ON c.UserID = u.UserID 
                                WHERE c.ClaimID = @ClaimID" +
-                               (userId.HasValue ? " AND c.UserID = @UserID" : "");
+                               (!string.IsNullOrEmpty(userId) ? " AND c.UserID = @UserID" : "");
 
                 using (var command = new SqlCommand(query, connection))
                 {
                     command.Parameters.AddWithValue("@ClaimID", claimId);
-                    if (userId.HasValue)
-                        command.Parameters.AddWithValue("@UserID", userId.Value);
+                    if (!string.IsNullOrEmpty(userId))
+                        command.Parameters.AddWithValue("@UserID", userId);
 
                     using (var reader = await command.ExecuteReaderAsync())
                     {
                         if (await reader.ReadAsync())
                         {
-                            // Fix: Convert decimal to double properly
                             var hoursValue = reader.GetValue(reader.GetOrdinal("Hours"));
                             var hourlyRateValue = reader.GetValue(reader.GetOrdinal("HourlyRate"));
 
@@ -484,10 +739,10 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                             if (hourlyRateValue != DBNull.Value)
                                 hourlyRate = Convert.ToDouble(hourlyRateValue);
 
-                            return new Claim
+                            var claim = new Claim
                             {
                                 ClaimID = reader.GetInt32(reader.GetOrdinal("ClaimID")),
-                                UserID = reader.GetInt32(reader.GetOrdinal("UserID")),
+                                UserID = reader.GetString(reader.GetOrdinal("UserID")),
                                 Month = reader.GetInt32(reader.GetOrdinal("Month")),
                                 Year = reader.GetInt32(reader.GetOrdinal("Year")),
                                 ModuleCode = reader.GetString(reader.GetOrdinal("ModuleCode")),
@@ -501,16 +756,70 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                                 SubmissionDate = reader.GetDateTime(reader.GetOrdinal("SubmissionDate")),
                                 User = new User
                                 {
+                                    UserID = reader.GetString(reader.GetOrdinal("User_UserID")),
                                     FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
                                     Surname = reader.GetString(reader.GetOrdinal("Surname")),
-                                    Email = reader.GetString(reader.GetOrdinal("Email"))
+                                    Email = reader.GetString(reader.GetOrdinal("Email")),
+                                    Role = reader.GetString(reader.GetOrdinal("Role"))
                                 }
                             };
+
+                            // Safely handle new columns
+                            if (paymentDateExists)
+                            {
+                                claim.PaymentDate = reader.IsDBNull(reader.GetOrdinal("PaymentDate")) ?
+                                    null : reader.GetDateTime(reader.GetOrdinal("PaymentDate"));
+                            }
+
+                            if (paidByExists)
+                            {
+                                claim.PaidBy = reader.IsDBNull(reader.GetOrdinal("PaidBy")) ?
+                                    null : reader.GetString(reader.GetOrdinal("PaidBy"));
+                            }
+
+                            if (verifiedByExists)
+                            {
+                                claim.VerifiedBy = reader.IsDBNull(reader.GetOrdinal("VerifiedBy")) ?
+                                    null : reader.GetString(reader.GetOrdinal("VerifiedBy"));
+                            }
+
+                            if (approvedByExists)
+                            {
+                                claim.ApprovedBy = reader.IsDBNull(reader.GetOrdinal("ApprovedBy")) ?
+                                    null : reader.GetString(reader.GetOrdinal("ApprovedBy"));
+                            }
+
+                            return claim;
                         }
                     }
                 }
             }
             return null;
+        }
+
+        // Statistics Queries
+        public async Task<int> GetClaimsCountAsync(string userId = null, string status = null)
+        {
+            using (var connection = new SqlConnection(_dbConnection.ConnectionString))
+            {
+                await connection.OpenAsync();
+                string query = "SELECT COUNT(*) FROM Claims WHERE 1=1";
+
+                if (!string.IsNullOrEmpty(userId))
+                    query += " AND UserID = @UserID";
+                if (!string.IsNullOrEmpty(status))
+                    query += " AND Status = @Status";
+
+                using (var command = new SqlCommand(query, connection))
+                {
+                    if (!string.IsNullOrEmpty(userId))
+                        command.Parameters.AddWithValue("@UserID", userId);
+                    if (!string.IsNullOrEmpty(status))
+                        command.Parameters.AddWithValue("@Status", status);
+
+                    return Convert.ToInt32(await command.ExecuteScalarAsync());
+                }
+            }
         }
 
         // Document Queries
@@ -601,31 +910,6 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Data
                 }
             }
             return documents;
-        }
-
-        // Statistics Queries
-        public async Task<int> GetClaimsCountAsync(int? userId = null, string status = null)
-        {
-            using (var connection = new SqlConnection(_dbConnection.ConnectionString))
-            {
-                await connection.OpenAsync();
-                string query = "SELECT COUNT(*) FROM Claims WHERE 1=1";
-
-                if (userId.HasValue)
-                    query += " AND UserID = @UserID";
-                if (!string.IsNullOrEmpty(status))
-                    query += " AND Status = @Status";
-
-                using (var command = new SqlCommand(query, connection))
-                {
-                    if (userId.HasValue)
-                        command.Parameters.AddWithValue("@UserID", userId.Value);
-                    if (!string.IsNullOrEmpty(status))
-                        command.Parameters.AddWithValue("@Status", status);
-
-                    return Convert.ToInt32(await command.ExecuteScalarAsync());
-                }
-            }
         }
 
         // Document methods for controller
