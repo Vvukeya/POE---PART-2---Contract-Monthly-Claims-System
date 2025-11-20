@@ -46,7 +46,8 @@
                     <thead>
                         <tr>
                             <th>Claim ID</th>
-                            <th>Lecturer</th>
+                            <th>Lecturer ID</th>
+                            <th>Lecturer Name</th>
                             <th>Period</th>
                             <th>Module Code</th>
                             <th>Total Amount</th>
@@ -60,7 +61,17 @@
                         {
                             <tr>
                                 <td>#@claim.ClaimID</td>
-                                <td>@claim.User?.FirstName @claim.User?.Surname</td>
+                                <td>@claim.UserID</td>
+                                <td>
+                                    @if (claim.User != null)
+                                    {
+                                        @($"{claim.User.FirstName} {claim.User.Surname}")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Unknown</span>
+                                    }
+                                </td>
                                 <td>@claim.Month/@claim.Year</td>
                                 <td>@claim.ModuleCode</td>
                                 <td>R @claim.TotalAmount.ToString("N2")</td>
@@ -77,9 +88,13 @@
                                     {
                                         <span class="badge badge-primary">@claim.Status</span>
                                     }
+                                    else if (claim.Status == "Paid")
+                                    {
+                                        <span class="badge badge-success">💰 Paid</span>
+                                    }
                                     else if (claim.Status == "Rejected")
                                     {
-                                        <span class="badge badge-success">@claim.Status</span>
+                                        <span class="badge badge-danger">@claim.Status</span>
                                     }
                                     else if (claim.Status == "Resubmitted")
                                     {
