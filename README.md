@@ -1,66 +1,75 @@
-﻿
-# 📋 Contract Monthly Claims System (CMCS)
+﻿# 📋 Contract Monthly Claims System (CMCS)
 
-The **Contract Monthly Claims System (CMCS)** is a web application designed to **streamline monthly claims** for educational institutions. It allows lecturers to submit claims, coordinators to verify them, and managers to approve payments, ensuring **efficiency, accountability, and transparency**.
+The **Contract Monthly Claims System (CMCS)** is a web application designed to **streamline monthly claims** for educational institutions. It allows lecturers to submit claims, coordinators to verify them, managers to approve them, and HR to process payments—ensuring **efficiency, accountability, and transparency**.
 
 ---
 
 ## 🎯 Key Features
 
 ### 👨‍🏫 Lecturer Features
-- **Dashboard:** Claim statistics and recent submissions
-- **Submit Claims:** Upload claims with supporting documents
-- **Track Claims:** Monitor claim status
-- **Edit & Resubmit:** Modify rejected claims
-- **Document Management:** Manage PDFs, DOCX, XLSX files
+- **Dashboard:** Claim statistics and recent submissions  
+- **Submit Claims:** Upload claims with supporting documents  
+- **Track Claims:** Monitor claim status  
+- **Edit & Resubmit:** Modify rejected claims  
+- **Document Management:** Manage PDFs, DOCX, XLSX files  
 
 ### 👨‍💼 Coordinator Features
-- **Verification Queue:** Review pending claims
-- **Document Review:** Access uploaded files
-- **Approve/Reject:** Provide detailed feedback
-- **Analytics:** Track verification statistics
+- **Verification Queue:** Review pending claims  
+- **Document Review:** Access uploaded files  
+- **Approve/Reject:** Provide detailed feedback  
+- **Analytics:** Track verification statistics  
 
 ### 👨‍💻 Manager Features
-- **Approval Queue:** Final claim approval
-- **Oversight:** Monitor all claim activity
-- **Financial Overview:** Track approved claims
-- **Quality Control:** Ensure policy compliance
+- **Approval Queue:** Final claim approval  
+- **Oversight:** Monitor all claim activity  
+- **Financial Overview:** Track approved claims  
+- **Quality Control:** Ensure policy compliance  
+
+### 💼 HR Manager Features (NEW)
+- **HR Dashboard:** Payment workflow overview  
+- **Lecturer Management:** Edit lecturer details  
+- **Payment Processing:** Pay approved claims  
+- **Invoice Generation:** Create PDF invoices  
+- **Reports:** Generate financial reports  
+- **Claim Tracking:** View claim payment statuses  
 
 ---
 
 ## 🛠 Technology Stack
 
 ### Backend
-- **ASP.NET Core MVC**
-- **C#**
-- **SQL Server**
-- **Microsoft.Data.SqlClient**
+- **ASP.NET Core MVC**  
+- **C#**  
+- **SQL Server / LocalDB**  
+- **Microsoft.Data.SqlClient**  
 - **Session Management**
 
 ### Frontend
-- **HTML5, CSS3, JavaScript**
+- **HTML5, CSS3, JavaScript**  
 - **Bootstrap-inspired responsive design**
 
 ### Security
-- **Session-based Authentication**
-- **Parameterized Queries**
-- **File Type Validation**
-- **Role-based Access Control**
+- **Session-based Authentication**  
+- **Parameterized SQL Queries**  
+- **File Type Validation**  
+- **Role-based Access Control (RBAC)**  
 
 ---
 
 ## 📁 Project Structure
-```
 
+```
 POE_PART_2___Contract_Monthly_Claims_System/
 ├── Controllers/
 │   ├── HomeController.cs
+│   ├── HRController.cs
 │   └── DatabaseController.cs
 ├── Models/
 │   ├── User.cs
 │   ├── Claim.cs
 │   ├── Document.cs
-│   └── ErrorViewModel.cs
+│   ├── ErrorViewModel.cs
+│   └── LecturerInvoice.cs
 ├── Data/
 │   ├── DatabaseConnection.cs
 │   └── AllQueries.cs
@@ -78,39 +87,48 @@ POE_PART_2___Contract_Monthly_Claims_System/
 │   │   ├── Coordinator/
 │   │   │   ├── CoordinatorDashboard.cshtml
 │   │   │   └── CoordinatorQueue.cshtml
-│   │   └── Manager/
-│   │       ├── ManagerDashboard.cshtml
-│   │       └── ManagerQueue.cshtml
+│   │   ├── Manager/
+│   │   │   ├── ManagerDashboard.cshtml
+│   │   │   └── ManagerQueue.cshtml
+│   ├── HR/
+│   │   ├── HRDashboard.cshtml
+│   │   ├── ManageLecturers.cshtml
+│   │   ├── EditLecturer.cshtml
+│   │   ├── GenerateReports.cshtml
+│   │   ├── GenerateInvoices.cshtml
+│   │   ├── ViewClaimDetails.cshtml
+│   │   └── ViewClaimStatuses.cshtml
 │   └── Shared/
 │       ├── _Layout.cshtml
 │       └── _ValidationScriptsPartial.cshtml
 ├── wwwroot/
 │   ├── css/Style.css
-│   └── uploads/ (document storage)
+│   ├── images/
+│   └── uploads/
 ├── Program.cs
 ├── appsettings.json
 └── POE___PART_2___Contract_Monthly_Claims_System.csproj
-
-````
+```
 
 ---
 
 ## 🚀 Installation & Setup
 
 ### Prerequisites
-- .NET 6.0 or 7.0 SDK
-- SQL Server (LocalDB or Express)
-- Modern web browser
+- .NET 6.0 or 7.0 SDK  
+- SQL Server (LocalDB or Express)  
+- Modern web browser  
 
 ### Steps
-1. Clone the project.
-2. Open in Visual Studio or IDE.
+1. Clone the project.  
+2. Open in Visual Studio or preferred IDE.  
 3. Install dependencies:
+
 ```bash
 dotnet add package Microsoft.Data.SqlClient
-````
+```
 
-4. Update **appsettings.json** connection string:
+4. Update **appsettings.json**:
 
 ```json
 {
@@ -120,53 +138,55 @@ dotnet add package Microsoft.Data.SqlClient
 }
 ```
 
-5. Initialize database by navigating to `/Database/InitializeDatabase`.
-6. Run the application:
+5. Run the application:
 
 ```bash
 dotnet run
 ```
 
-7. Access app at `https://localhost:7289` or `http://localhost:5255`.
+6. Access the app at:  
+`https://localhost:7289`  
+or  
+`http://localhost:5255`
 
 ---
 
 ## 👥 User Roles & Access
 
-* **Lecturer:** Submit claims, track status, manage personal claims
-* **Coordinator:** Verify claims, provide feedback, department-wide access
-* **Manager:** Final approval, financial oversight, institution-wide access
+- **Lecturer:** Submit & track claims  
+- **Coordinator:** Verify & review claims  
+- **Manager:** Approve claims  
+- **HR Manager:** Process payments, generate invoices & reports  
 
 ---
 
 ## 📊 Database Schema
 
 ### Users Table
-
 | Column                    | Description                      |
 | ------------------------- | -------------------------------- |
 | UserID (PK)               | Unique identifier                |
-| Role                      | Lecturer / Coordinator / Manager |
+| Role                      | Lecturer / Coordinator / Manager / HR |
 | FirstName, Surname, Email | Personal info                    |
 | Address, PhoneNumber      | Contact info                     |
 | RegistrationDate          | Account creation date            |
 | Password                  | Secure password                  |
 
 ### Claims Table
-
 | Column                                  | Description                                            |
 | --------------------------------------- | ------------------------------------------------------ |
 | ClaimID (PK)                            | Unique claim ID                                        |
 | UserID (FK)                             | Linked user                                            |
 | Month, Year                             | Claim period                                           |
 | ModuleCode, Sessions, Hours, HourlyRate | Work details                                           |
-| TotalAmount                             | Calculated automatically                               |
-| Status                                  | Pending / Verified / Approved / Rejected / Resubmitted |
+| TotalAmount                             | Auto-calculated                                        |
+| Status                                  | Pending / Verified / Approved / Rejected / Resubmitted / Paid |
 | SubmissionDate                          | Date submitted                                         |
-| CorrectionNotes                         | Coordinator notes                                      |
+| CorrectionNotes                         | Notes from coordinators                                |
+| PaymentDate                             | When HR processed payment                              |
+| PaidBy                                  | HR member who paid                                     |
 
 ### Documents Table
-
 | Column                                 | Description        |
 | -------------------------------------- | ------------------ |
 | DocumentID (PK)                        | Unique document ID |
@@ -178,81 +198,79 @@ dotnet run
 
 ## 🔒 Security Features
 
-* Session-based authentication
-* Role-based authorization
-* SQL injection prevention
-* File validation (type & ≤5MB)
-* Client & server input validation
-* Session timeout (30 min)
-* Anti-forgery tokens
+- Session-based authentication  
+- Role-based authorization  
+- SQL injection prevention  
+- File validation (type & ≤5MB)  
+- Anti-forgery tokens  
+- Session timeout (30 min)  
 
 ---
 
 ## 📱 Responsive Design
 
 Supports:
-
-* Desktop (≥1400px)
-* Tablets (768–1024px)
-* Mobile (<768px)
+- Desktop  
+- Tablets  
+- Mobile  
 
 ---
 
 ## 🔄 Workflow
 
-Registration → Login → Claim Submission → Verification → Approval → Tracking → Resubmission
+Registration → Login → Claim Submission → Verification → Approval → Payment (HR) → Tracking
 
 ---
 
 ## 📄 Supported Files
 
-* PDF (.pdf), Word (.docx), Excel (.xlsx)
-* Max 5 MB
+- PDF (.pdf)  
+- Word (.docx)  
+- Excel (.xlsx)  
+- Max size: 5MB  
 
 ---
 
 ## 🎨 UI/UX Highlights
 
-* Card-based layout
-* Color-coded statuses
-* Responsive sortable tables
-* Real-time validation
-* Loading & error states
-* Accessibility support
+- Card-based layout  
+- Modern gradients  
+- Color-coded statuses  
+- Sortable tables  
+- Real-time validation  
+- Smooth navigation  
 
 ---
 
 ## 🛠 Development Features
 
-* Modular MVC architecture
-* Direct SQL integration
-* Error logging
-* File management
-* Session persistence
-* Graceful error handling
-* Automatic DB initialization
+- MVC architecture  
+- Direct SQL & parameterized queries  
+- Error logging  
+- Secure file handling  
+- Session persistence  
+- Automatic DB initialization  
 
 ---
 
 ## 📈 Performance Optimizations
 
-* Indexed SQL queries
-* Efficient resource management
-* Streamlined file operations
-* Session caching
-* Device-optimized layouts
+- Indexed SQL queries  
+- Efficient I/O operations  
+- Session caching  
+- Optimized database schema  
 
 ---
 
 ## 🔧 Troubleshooting
 
 | Issue                     | Solution                                |
-| ------------------------- | --------------------------------------- |
-| Database Connection Error | Verify SQL Server and connection string |
-| File Upload Fails         | Check type & size (≤5MB)                |
-| Login Problems            | Verify email/password, clear cache      |
-| Document Viewing Issues   | Confirm upload & browser compatibility  |
-| Session Timeout           | Re-login (auto 30 min)                  |
+| ------------------------- | ---------------------------------------- |
+| Database Connection Error | Check SQL Server + connection string     |
+| File Upload Fails         | Ensure file type & size (≤5MB)           |
+| Login Problems            | Verify credentials, clear browser cache  |
+| Document Viewing Issues   | Check uploads folder & permissions       |
+| Session Timeout           | Re-login (30 minutes)                    |
 
 ---
 
@@ -264,10 +282,7 @@ Contact your **system administrator** or refer to documentation.
 
 ## 📄 License
 
-Educational project for **POE (Portfolio of Evidence)**.
-
-**Version:** 2.0
-**Last Updated:** 24 Oct 2024
-**Developed By:** Vutivi Vukeya
-
-
+Educational project for **POE (Portfolio of Evidence)**.  
+**Version:** 2.0  
+**Last Updated:** 20 November 2024  
+**Developed By:** *Vutivi Vukeya*
