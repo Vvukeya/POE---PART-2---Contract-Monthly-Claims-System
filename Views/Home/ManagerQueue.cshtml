@@ -51,7 +51,8 @@
                     <thead>
                         <tr>
                             <th>Claim ID</th>
-                            <th>Lecturer</th>
+                            <th>Lecturer ID</th>
+                            <th>Lecturer Name</th>
                             <th>Period</th>
                             <th>Sessions</th>
                             <th>Hours</th>
@@ -68,7 +69,17 @@
                         {
                             <tr>
                                 <td>#@claim.ClaimID</td>
-                                <td>@claim.User?.FirstName @claim.User?.Surname</td>
+                                <td>@claim.UserID</td>
+                                <td>
+                                    @if (claim.User != null)
+                                    {
+                                        @($"{claim.User.FirstName} {claim.User.Surname}")
+                                    }
+                                    else
+                                    {
+                                        <span class="text-muted">Unknown</span>
+                                    }
+                                </td>
                                 <td>@claim.Month/@claim.Year</td>
                                 <td>@claim.Sessions</td>
                                 <td>@claim.Hours</td>
