@@ -29,14 +29,14 @@
 
             @if (TempData["Success"] != null)
             {
-                <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                <div class="alert alert-success">
                     @TempData["Success"]
                 </div>
             }
 
             @if (TempData["Error"] != null)
             {
-                <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                <div class="alert alert-error">
                     @TempData["Error"]
                 </div>
             }
@@ -51,6 +51,7 @@
                         <option value="Lecturer">Lecturer</option>
                         <option value="Coordinator">Programme Coordinator</option>
                         <option value="Manager">Academic Manager</option>
+                        <option value="HR">HR Manager</option>
                     </select>
                     <span asp-validation-for="Role" class="text-danger"></span>
                 </div>
