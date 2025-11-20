@@ -1,0 +1,140 @@
+﻿@model List<POE___PART_2___Contract_Monthly_Claims_System.Models.Claim>
+@{
+    ViewData["Title"] = "Generate Reports – HR";
+    var totalAmount = ViewBag.TotalAmount ?? 0;
+    var totalClaims = ViewBag.TotalClaims ?? 0;
+    var averageAmount = ViewBag.AverageAmount ?? 0;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>CMCS – HR Reports</h1>
+        <a href="@Url.Action("Logout", "Home")" class="signout-btn">Sign Out</a>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="@Url.Action("HRDashboard", "HR")">Dashboard</a></li>
+            <li><a href="@Url.Action("ManageLecturers", "HR")">Manage Lecturers</a></li>
+            <li><a href="@Url.Action("GenerateInvoices", "HR")">Invoices</a></li>
+            <li><a href="@Url.Action("ViewClaimStatuses", "HR")">Track Claims</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>Approved Claims Report</h2>
+            <p class="text-muted">Comprehensive report of all approved claims ready for payment processing</p>
+
+            <!-- Report Summary -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Claims</h3>
+                    <div class="stat-number">@totalClaims</div>
+                    <p class="stat-description">Approved claims</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Amount</h3>
+                    <div class="stat-number">R @totalAmount.ToString("N2")</div>
+                    <p class="stat-description">Total payable</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Average Claim</h3>
+                    <div class="stat-number">R @averageAmount.ToString("N2")</div>
+                    <p class="stat-description">Per claim</p>
+                </div>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">📊</div>
+                    <h3>No Approved Claims</h3>
+                    <p>There are no approved claims to generate reports for.</p>
+                    <p>Check back when claims have been approved by Academic Managers.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Claim ID</th>
+                                <th>Lecturer</th>
+                                <th>Period</th>
+                                <th>Module</th>
+                                <th>Hours</th>
+                                <th>Rate (R)</th>
+                                <th>Total Amount (R)</th>
+                                <th>Submission Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var claim in Model)
+                            {
+                                <tr>
+                                    <td><strong>#@claim.ClaimID</strong></td>
+                                    <td>@claim.User?.FirstName @claim.User?.Surname</td>
+                                    <td>@claim.Month/@claim.Year</td>
+                                    <td>@claim.ModuleCode</td>
+                                    <td>@claim.Hours</td>
+                                    <td>@claim.HourlyRate.ToString("N2")</td>
+                                    <td><strong>@claim.TotalAmount.ToString("N2")</strong></td>
+                                    <td>@claim.SubmissionDate.ToString("dd-MMM-yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr style="background-color: #e3f2fd; font-weight: bold;">
+                                <td colspan="6" style="text-align: right;">Grand Total:</td>
+                                <td>R @totalAmount.ToString("N2")</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <!-- Report Actions -->
+                <div style="display: flex; gap: 15px; justify-content: center; margin-top: 30px; padding: 20px; border-top: 1px solid #e0e0e0;">
+                    <button onclick="window.print()" class="btn btn-primary">
+                        🖨️ Print Report
+                    </button>
+                    <a href="@Url.Action("ExportReportsToExcel", "HR", new { status = "Approved" })" class="btn btn-ghost">
+                        📊 Export to Excel
+                    </a>
+                    <a href="@Url.Action("GenerateInvoices", "HR")" class="btn btn-ghost">
+                        🧾 Generate Invoices
+                    </a>
+                </div>
+
+                <!-- Additional Report Information -->
+                <div class="card" style="margin-top: 20px; background: #f8f9fa;">
+                    <h3>📋 Report Details</h3>
+                    <div class="row">
+                        <div>
+                            <h4>Generated On</h4>
+                            <p>@DateTime.Now.ToString("dd MMMM yyyy 'at' HH:mm")</p>
+                        </div>
+                        <div>
+                            <h4>Report Period</h4>
+                            <p>All approved claims to date</p>
+                        </div>
+                        <div>
+                            <h4>Total Lecturers</h4>
+                            <p>@Model.Select(c => c.UserID).Distinct().Count() unique lecturers</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</body>
+</html>
