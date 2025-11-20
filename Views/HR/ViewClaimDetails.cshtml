@@ -1,0 +1,248 @@
+﻿@model POE___PART_2___Contract_Monthly_Claims_System.Models.Claim
+@{
+    ViewData["Title"] = "Claim Details – HR";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>CMCS – HR Claim Details</h1>
+        <a href="@Url.Action("Logout", "Home")" class="signout-btn">Sign Out</a>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="@Url.Action("HRDashboard", "HR")">Dashboard</a></li>
+            <li><a href="@Url.Action("ViewClaimStatuses", "HR")">All Claims</a></li>
+            <li><a href="@Url.Action("GenerateInvoices", "HR")">Invoices</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">
+                @TempData["Success"]
+            </div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-error">
+                @TempData["Error"]
+            </div>
+        }
+
+        <div class="card">
+            <h2>Claim Details #@Model.ClaimID</h2>
+
+            <!-- Lecturer Information -->
+            <div class="card" style="background: #e3f2fd; margin-bottom: 20px;">
+                <h3>👨‍🏫 Lecturer Information</h3>
+                <div class="row">
+                    <div>
+                        <strong>Name:</strong> @(Model.User?.FirstName ?? "N/A") @(Model.User?.Surname ?? "")
+                    </div>
+                    <div>
+                        <strong>Lecturer ID:</strong> @Model.UserID
+                    </div>
+                    <div>
+                        <strong>Email:</strong> @(Model.User?.Email ?? "N/A")
+                    </div>
+                    <div>
+                        <strong>Phone:</strong> @(Model.User?.PhoneNumber ?? "N/A")
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 10px;">
+                    <div>
+                        <strong>Address:</strong> @(Model.User?.Address ?? "N/A")
+                    </div>
+                </div>
+            </div>
+
+            <!-- Claim Information -->
+            <div class="card" style="background: #f3e5f5; margin-bottom: 20px;">
+                <h3>📋 Claim Information</h3>
+                <div class="row">
+                    <div>
+                        <strong>Claim ID:</strong> #@Model.ClaimID
+                    </div>
+                    <div>
+                        <strong>Period:</strong> @Model.Month/@Model.Year
+                    </div>
+                    <div>
+                        <strong>Module Code:</strong> @Model.ModuleCode
+                    </div>
+                    <div>
+                        <strong>Sessions:</strong> @Model.Sessions
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 10px;">
+                    <div>
+                        <strong>Hours Worked:</strong> @Model.Hours
+                    </div>
+                    <div>
+                        <strong>Hourly Rate:</strong> R @Model.HourlyRate.ToString("N2")
+                    </div>
+                    <div>
+                        <strong>Total Amount:</strong> R @Model.TotalAmount.ToString("N2")
+                    </div>
+                    <div>
+                        <strong>Submitted:</strong> @Model.SubmissionDate.ToString("dd MMMM yyyy HH:mm")
+                    </div>
+                </div>
+                <div class="row" style="margin-top: 10px;">
+                    <div>
+                        <strong>Description:</strong> @Model.Description
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflow Information -->
+            <div class="card" style="background: #e8f5e8; margin-bottom: 20px;">
+                <h3>📊 Workflow Information</h3>
+                <div class="row">
+                    <div>
+                        <strong>Submitted By:</strong> Lecturer (@(Model.User?.FirstName ?? "N/A") @(Model.User?.Surname ?? ""))
+                    </div>
+                    <div>
+                        <strong>Verified By:</strong>
+                        @if (!string.IsNullOrEmpty(Model.VerifiedBy))
+                        {
+                            @Model.VerifiedBy
+                        }
+                        else if (Model.Status == "Verified" || Model.Status == "Approved" || Model.Status == "Paid")
+                        {
+                            <span class="text-muted">Programme Coordinator (Name not recorded)</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Pending verification</span>
+                        }
+                    </div>
+                    <div>
+                        <strong>Approved By:</strong>
+                        @if (!string.IsNullOrEmpty(Model.ApprovedBy))
+                        {
+                            @Model.ApprovedBy
+                        }
+                        else if (Model.Status == "Approved" || Model.Status == "Paid")
+                        {
+                            <span class="text-muted">Academic Manager (Name not recorded)</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">Pending approval</span>
+                        }
+                    </div>
+                    <div>
+                        <strong>Current Status:</strong>
+                        @if (Model.Status == "Pending")
+                        {
+                            <span class="badge badge-warn">@Model.Status</span>
+                        }
+                        else if (Model.Status == "Verified")
+                        {
+                            <span class="badge badge-info">@Model.Status</span>
+                        }
+                        else if (Model.Status == "Approved")
+                        {
+                            <span class="badge badge-primary">@Model.Status</span>
+                        }
+                        else if (Model.Status == "Paid")
+                        {
+                            <span class="badge badge-success">💰 Paid</span>
+                        }
+                        else if (Model.Status == "Rejected")
+                        {
+                            <span class="badge badge-danger">@Model.Status</span>
+                        }
+                    </div>
+                </div>
+
+                @if (Model.Status == "Paid")
+                {
+                    <div class="row" style="margin-top: 10px;">
+                        <div>
+                            <strong>Payment Date:</strong> @(Model.PaymentDate?.ToString("dd MMMM yyyy HH:mm") ?? "N/A")
+                        </div>
+                        <div>
+                            <strong>Paid By:</strong> @(Model.PaidBy ?? "N/A")
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Documents -->
+            @if (Model.Documents != null && Model.Documents.Any())
+            {
+                <div class="card" style="margin-bottom: 20px;">
+                    <h3>📎 Supporting Documents</h3>
+                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                        @foreach (var document in Model.Documents)
+                        {
+                            <div style="display: flex; gap: 10px; align-items: center; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+                                <span>📄</span>
+                                <span style="flex: 1;">@document.FileName</span>
+                                <a href="@Url.Action("ViewDocument", "Home", new { documentId = document.DocumentID })"
+                                   class="btn btn-ghost btn-sm" target="_blank">View</a>
+                                <a href="@Url.Action("DownloadDocument", "Home", new { documentId = document.DocumentID })"
+                                   class="btn btn-primary btn-sm">Download</a>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- HR Actions -->
+            <div class="card" style="background: #fff3cd;">
+                <h3>💰 HR Actions</h3>
+                <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                    @if (Model.Status == "Approved")
+                    {
+                        <a href="@Url.Action("GenerateLecturerInvoice", "HR", new { id = Model.UserID })"
+                           class="btn btn-primary" target="_blank">
+                            🧾 Generate Invoice PDF
+                        </a>
+
+                        <form method="post" action="@Url.Action("ProcessPayment", "HR")" style="margin: 0;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="claimId" value="@Model.ClaimID" />
+                            <button type="submit" class="btn btn-approve"
+                                    onclick="return confirm('Process payment of R @Model.TotalAmount.ToString("N2") to @(Model.User?.FirstName) @(Model.User?.Surname)?')">
+                                💳 Pay Now
+                            </button>
+                        </form>
+                    }
+                    else if (Model.Status == "Paid")
+                    {
+                        <span class="btn btn-success" style="cursor: default;">
+                            ✅ Payment Processed
+                        </span>
+                        <a href="@Url.Action("DownloadInvoice", "HR", new { claimId = Model.ClaimID })"
+                           class="btn btn-ghost">
+                            🧾 Download Invoice
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="btn btn-ghost" style="cursor: default;">
+                            ⏳ Awaiting Approval
+                        </span>
+                    }
+
+                    <a href="@Url.Action("ViewClaimStatuses", "HR")" class="btn btn-ghost">
+                        ← Back to All Claims
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
