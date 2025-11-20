@@ -1,0 +1,188 @@
+﻿@{
+    ViewData["Title"] = "HR Dashboard";
+    var userName = ViewBag.UserName;
+    var totalLecturers = ViewBag.TotalLecturers ?? 0;
+    var totalApprovedClaims = ViewBag.TotalApprovedClaims ?? 0;
+    var totalClaims = ViewBag.TotalClaims ?? 0;
+    var pendingClaims = ViewBag.PendingClaims ?? 0;
+    var verifiedClaims = ViewBag.VerifiedClaims ?? 0;
+    var paidClaims = ViewBag.PaidClaims ?? 0;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"] – CMCS</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>CMCS – HR Dashboard</h1>
+        <a href="@Url.Action("Logout", "Home")" class="signout-btn">Sign Out</a>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="@Url.Action("ManageLecturers", "HR")">Manage Lecturers</a></li>
+            <li><a href="@Url.Action("GenerateReports", "HR")">Generate Reports</a></li>
+            <li><a href="@Url.Action("GenerateInvoices", "HR")">Generate Invoices</a></li>
+            <li><a href="@Url.Action("ViewClaimStatuses", "HR")">Track Claims</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        
+
+        <!-- Welcome Card -->
+        <div class="card">
+            <h2>Welcome, @userName!</h2>
+            <p><strong>Role:</strong> HR Manager</p>
+            <p>
+                As HR Manager, you can manage lecturer data, generate reports for approved claims,
+                create invoices for payment processing, and track all claim statuses in the system.
+            </p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h3>Total Lecturers</h3>
+                <div class="stat-number">@totalLecturers</div>
+                <p class="stat-description">Registered in system</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Approved Claims</h3>
+                <div class="stat-number">@totalApprovedClaims</div>
+                <p class="stat-description">Ready for payment</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Pending Review</h3>
+                <div class="stat-number">@pendingClaims</div>
+                <p class="stat-description">Awaiting verification</p>
+            </div>
+
+            <div class="stat-card">
+                <h3>Verified Claims</h3>
+                <div class="stat-number">@verifiedClaims</div>
+                <p class="stat-description">Ready for approval</p>
+            </div>
+            <div class="stat-card">
+                <h3>Paid Claims</h3>
+                <div class="stat-number">@paidClaims</div>
+                <p class="stat-description">Payment processed</p>
+            </div>
+            <div class="stat-card">
+                <h3>Total Claims</h3>
+                <div class="stat-number">@totalClaims</div>
+                <p class="stat-description">All claims in system</p>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <h2>Quick Actions</h2>
+            <div class="quick-actions">
+                <div class="quick-action-card">
+                    <h4>Manage Lecturers</h4>
+                    <p>View, edit, or remove lecturer accounts</p>
+                    <a href="@Url.Action("ManageLecturers", "HR")" class="btn btn-primary">Manage</a>
+                </div>
+                <div class="quick-action-card">
+                    <h4>Generate Reports</h4>
+                    <p>Create detailed reports of approved claims</p>
+                    <a href="@Url.Action("GenerateReports", "HR")" class="btn btn-ghost">Reports</a>
+                </div>
+                <div class="quick-action-card">
+                    <h4>Create Invoices</h4>
+                    <p>Generate payment invoices for lecturers</p>
+                    <a href="@Url.Action("GenerateInvoices", "HR")" class="btn btn-ghost">Invoices</a>
+                </div>
+                <div class="quick-action-card">
+                    <h4>Track Claims</h4>
+                    <p>Monitor all claim statuses in the system</p>
+                    <a href="@Url.Action("ViewClaimStatuses", "HR")" class="btn btn-ghost">Track</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment Workflow -->
+        <div class="card">
+            <h2>💰 Payment Workflow</h2>
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; margin: 20px 0;">
+                <div style="text-align: center; flex: 1; min-width: 120px;">
+                    <div style="background: #ff9800; color: white; padding: 15px; border-radius: 50%; width: 60px; height: 60px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-weight: bold;">1</div>
+                    <strong>Pending</strong>
+                    <div>@pendingClaims claims</div>
+                </div>
+                <div style="flex: 1; text-align: center;">→</div>
+                <div style="text-align: center; flex: 1; min-width: 120px;">
+                    <div style="background: #2196f3; color: white; padding: 15px; border-radius: 50%; width: 60px; height: 60px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-weight: bold;">2</div>
+                    <strong>Verified</strong>
+                    <div>@verifiedClaims claims</div>
+                </div>
+                <div style="flex: 1; text-align: center;">→</div>
+                <div style="text-align: center; flex: 1; min-width: 120px;">
+                    <div style="background: #4caf50; color: white; padding: 15px; border-radius: 50%; width: 60px; height: 60px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-weight: bold;">3</div>
+                    <strong>Approved</strong>
+                    <div>@totalApprovedClaims claims</div>
+                </div>
+                <div style="flex: 1; text-align: center;">→</div>
+                <div style="text-align: center; flex: 1; min-width: 120px;">
+                    <div style="background: #0A7D16; color: white; padding: 15px; border-radius: 50%; width: 60px; height: 60px; margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-weight: bold;">💰</div>
+                    <strong>Paid</strong>
+                    <div>@paidClaims claims</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Tools -->
+        <div class="card" style="background: #f8f9fa;">
+            <h2>📊 Export Tools</h2>
+            <p>Generate files for finance and reporting:</p>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; margin-top: 15px;">
+                <a href="@Url.Action("ExportPaymentPunch", "HR")" class="btn btn-primary">
+                    💳 Export Payment Punch
+                </a>
+                <a href="@Url.Action("ExportReportsToExcel", "HR", new { status = "All" })" class="btn btn-ghost">
+                    📈 Export All Claims to Excel
+                </a>
+                <a href="@Url.Action("ExportReportsToExcel", "HR", new { status = "Paid" })" class="btn btn-ghost">
+                    💰 Export Paid Claims to Excel
+                </a>
+            </div>
+        </div>
+        <!-- HR Instructions Card -->
+        <div class="card" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-left: 4px solid #1976d2;">
+            <h2>🧭 HR Portal Guide</h2>
+            <p><strong>Use this portal to manage lecturer claims and payments efficiently:</strong></p>
+            <div class="row">
+                <div>
+                    <h4>📋 Approved Claims</h4>
+                    <p>Review claims ready for payment processing</p>
+                </div>
+                <div>
+                    <h4>🧾 Generate Invoice</h4>
+                    <p>Create PDF invoices for record keeping</p>
+                </div>
+                <div>
+                    <h4>💳 Pay Claim</h4>
+                    <p>Mark claims as paid and update all dashboards</p>
+                </div>
+            </div>
+            <div class="row">
+                <div>
+                    <h4>📊 Export Payment Punch</h4>
+                    <p>Generate finance files for payroll department</p>
+                </div>
+                <div>
+                    <h4>📈 Reports</h4>
+                    <p>View summaries and export to Excel</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
