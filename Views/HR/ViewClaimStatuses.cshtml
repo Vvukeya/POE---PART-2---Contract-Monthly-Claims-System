@@ -1,0 +1,223 @@
+﻿@model List<POE___PART_2___Contract_Monthly_Claims_System.Models.Claim>
+@{
+    ViewData["Title"] = "Track Claim Statuses – HR";
+    var totalClaims = ViewBag.TotalClaims ?? 0;
+    var pendingClaims = ViewBag.PendingClaims ?? 0;
+    var verifiedClaims = ViewBag.VerifiedClaims ?? 0;
+    var approvedClaims = ViewBag.ApprovedClaims ?? 0;
+    var rejectedClaims = ViewBag.RejectedClaims ?? 0;
+    var paidClaims = ViewBag.PaidClaims ?? 0;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>CMCS – HR Claim Tracking</h1>
+        <a href="@Url.Action("Logout", "Home")" class="signout-btn">Sign Out</a>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="@Url.Action("HRDashboard", "HR")">Dashboard</a></li>
+            <li><a href="@Url.Action("ManageLecturers", "HR")">Manage Lecturers</a></li>
+            <li><a href="@Url.Action("GenerateReports", "HR")">Reports</a></li>
+            <li><a href="@Url.Action("GenerateInvoices", "HR")">Invoices</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>Track All Claim Statuses</h2>
+            <p class="text-muted">Monitor the progress of all claims through the approval workflow</p>
+
+            <!-- Status Overview -->
+            <div class="stats-grid">
+                <div class="stat-card" style="background: linear-gradient(135deg, #ff9800, #f57c00);">
+                    <h3>Pending</h3>
+                    <div class="stat-number">@pendingClaims</div>
+                    <p class="stat-description">Awaiting verification</p>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #2196f3, #1976d2);">
+                    <h3>Verified</h3>
+                    <div class="stat-number">@verifiedClaims</div>
+                    <p class="stat-description">Ready for approval</p>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #4caf50, #2e7d32);">
+                    <h3>Approved</h3>
+                    <div class="stat-number">@approvedClaims</div>
+                    <p class="stat-description">Ready for payment</p>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #2e7d32, #1b5e20);">
+                    <h3>Paid</h3>
+                    <div class="stat-number">@paidClaims</div>
+                    <p class="stat-description">Payment processed</p>
+                </div>
+                <div class="stat-card" style="background: linear-gradient(135deg, #f44336, #d32f2f);">
+                    <h3>Rejected</h3>
+                    <div class="stat-number">@rejectedClaims</div>
+                    <p class="stat-description">Not approved</p>
+                </div>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">📋</div>
+                    <h3>No Claims Found</h3>
+                    <p>There are no claims in the system yet.</p>
+                    <p>Claims will appear here once lecturers start submitting them.</p>
+                </div>
+            }
+            else
+            {
+                <!-- Filter Options -->
+                <div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+                    <button onclick="filterClaims('all')" class="btn btn-ghost">All Claims (@totalClaims)</button>
+                    <button onclick="filterClaims('Pending')" class="btn btn-ghost" style="background: #fff3cd; color: #856404;">Pending (@pendingClaims)</button>
+                    <button onclick="filterClaims('Verified')" class="btn btn-ghost" style="background: #d1ecf1; color: #0c5460;">Verified (@verifiedClaims)</button>
+                    <button onclick="filterClaims('Approved')" class="btn btn-ghost" style="background: #d4edda; color: #155724;">Approved (@approvedClaims)</button>
+                    <button onclick="filterClaims('Paid')" class="btn btn-ghost" style="background: #e8f5e8; color: #2e7d32;">Paid (@paidClaims)</button>
+                    <button onclick="filterClaims('Rejected')" class="btn btn-ghost" style="background: #f8d7da; color: #721c24;">Rejected (@rejectedClaims)</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table" id="claimsTable">
+                        <thead>
+                            <tr>
+                                <th>Claim ID</th>
+                                <th>Lecturer ID</th>
+                                <th>Lecturer Name</th>
+                                <th>Period</th>
+                                <th>Module</th>
+                                <th>Amount (R)</th>
+                                <th>Status</th>
+                                <th>Submission Date</th>
+                                <th>Documents</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var claim in Model)
+                            {
+                                <tr class="claim-row" data-status="@claim.Status">
+                                    <td><strong>#@claim.ClaimID</strong></td>
+                                    <td>@claim.UserID</td>
+                                    <td>
+                                        @if (claim.User != null)
+                                        {
+                                            @($"{claim.User.FirstName} {claim.User.Surname}")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">Unknown</span>
+                                        }
+                                    </td>
+                                    <td>@claim.Month/@claim.Year</td>
+                                    <td>@claim.ModuleCode</td>
+                                    <td><strong>@claim.TotalAmount.ToString("N2")</strong></td>
+                                    <td>
+                                        @if (claim.Status == "Pending")
+                                        {
+                                            <span class="badge badge-warn">@claim.Status</span>
+                                        }
+                                        else if (claim.Status == "Verified")
+                                        {
+                                            <span class="badge badge-info">@claim.Status</span>
+                                        }
+                                        else if (claim.Status == "Approved")
+                                        {
+                                            <span class="badge badge-primary">@claim.Status</span>
+                                        }
+                                        else if (claim.Status == "Paid")
+                                        {
+                                            <span class="badge badge-success">💰 Paid</span>
+                                        }
+                                        else if (claim.Status == "Rejected")
+                                        {
+                                            <span class="badge badge-danger">@claim.Status</span>
+                                        }
+                                    </td>
+                                    <td>@claim.SubmissionDate.ToString("dd-MMM-yyyy HH:mm")</td>
+                                    <td>
+                                        @if (claim.Documents != null && claim.Documents.Any())
+                                        {
+                                            <span class="badge badge-info">@claim.Documents.Count</span>
+                                        }
+                                        else
+                                        {
+                                            <span>—</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <div class="table-actions">
+                                            <a href="@Url.Action("ViewClaimDetails", "HR", new { id = claim.ClaimID })" class="btn btn-ghost btn-sm">
+                                                👁️ Details
+                                            </a>
+                                            @if (claim.Status == "Approved")
+                                            {
+                                                <a href="@Url.Action("GenerateLecturerInvoice", "HR", new { id = claim.UserID })"
+                                                   class="btn btn-primary btn-sm" target="_blank">
+                                                    🧾 Invoice
+                                                </a>
+                                            }
+                                            else if (claim.Status == "Paid")
+                                            {
+                                                <span class="btn btn-success btn-sm" style="cursor: default;">
+                                                    ✅ Paid
+                                                </span>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Summary Statistics -->
+                <div class="card" style="margin-top: 20px; background: #e3f2fd;">
+                    <h3>📈 Claim Statistics</h3>
+                    <div class="row">
+                        <div>
+                            <h4>Total Value</h4>
+                            <p style="font-size: 1.2em; font-weight: bold;">R @Model.Sum(c => c.TotalAmount).ToString("N2")</p>
+                        </div>
+                        <div>
+                            <h4>Average Claim</h4>
+                            <p style="font-size: 1.2em; font-weight: bold;">R @(Model.Any() ? Model.Average(c => c.TotalAmount).ToString("N2") : "0.00")</p>
+                        </div>
+                        <div>
+                            <h4>Payment Rate</h4>
+                            <p style="font-size: 1.2em; font-weight: bold;">@(totalClaims > 0 ? ((paidClaims * 100) / totalClaims).ToString("N1") : "0")%</p>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <script>
+        function filterClaims(status) {
+            const rows = document.querySelectorAll('.claim-row');
+            rows.forEach(row => {
+                if (status === 'all' || row.getAttribute('data-status') === status) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+
+        // Initialize with all claims visible
+        document.addEventListener('DOMContentLoaded', function() {
+            filterClaims('all');
+        });
+    </script>
+</body>
+</html>
