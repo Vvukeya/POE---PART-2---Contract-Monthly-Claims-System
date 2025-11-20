@@ -5,6 +5,7 @@
     var totalApprovedClaims = ViewBag.TotalApprovedClaims ?? 0;
     var totalRejectedClaims = ViewBag.TotalRejectedClaims ?? 0;
     var totalClaims = ViewBag.TotalClaims ?? 0;
+    var totalPaidClaims = ViewBag.TotalPaidClaims ?? 0;
 }
 
 <!DOCTYPE html>
@@ -56,6 +57,12 @@
                 <h3>Approved</h3>
                 <p style="font-size: 2rem; color: #2e7d32; font-weight: bold;">@totalApprovedClaims</p>
                 <p>Successfully approved</p>
+            </div>
+
+            <div class="card">
+                <h3>Paid Claims</h3>
+                <p style="font-size: 2rem; color: #388e3c; font-weight: bold;">@totalPaidClaims</p>
+                <p>Payment processed</p>
             </div>
 
             <div class="card">
