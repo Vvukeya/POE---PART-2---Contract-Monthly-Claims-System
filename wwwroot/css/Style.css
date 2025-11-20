@@ -279,6 +279,21 @@ button, .btn-primary, .btn-ghost, .btn-approve, .btn-decline {
 .badge-resubmitted {
     background: #ef6c00;
 }
+/* Paid status badge - Dark Green */
+.badge-paid {
+    background: #0A7D16;
+    color: #fff;
+    padding: 0.4rem 0.8rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-block;
+}
+
+.badge-success {
+    background: #388e3c;
+    color: #fff;
+}
 
 /* ===== FORM CONTAINERS ===== */
 .form-container {
