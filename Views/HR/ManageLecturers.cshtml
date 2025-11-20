@@ -1,0 +1,106 @@
+﻿@model List<POE___PART_2___Contract_Monthly_Claims_System.Models.User>
+@{
+    ViewData["Title"] = "Manage Lecturers – HR";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>CMCS – HR Management</h1>
+        <a href="@Url.Action("Logout", "Home")" class="signout-btn">Sign Out</a>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="@Url.Action("HRDashboard", "HR")">Dashboard</a></li>
+            <li><a href="@Url.Action("GenerateReports", "HR")">Reports</a></li>
+            <li><a href="@Url.Action("GenerateInvoices", "HR")">Invoices</a></li>
+            <li><a href="@Url.Action("ViewClaimStatuses", "HR")">Track Claims</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>Manage Lecturers</h2>
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">
+                    @TempData["Success"]
+                </div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-error">
+                    @TempData["Error"]
+                </div>
+            }
+
+            @if (!Model.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">👨‍🏫</div>
+                    <h3>No Lecturers Found</h3>
+                    <p>There are no lecturers registered in the system yet.</p>
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Lecturer ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Address</th>
+                                <th>Registration Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var lecturer in Model)
+                            {
+                                <tr>
+                                    <td>@lecturer.UserID</td>
+                                    <td>
+                                        <strong>@lecturer.FirstName @lecturer.Surname</strong>
+                                    </td>
+                                    <td>@lecturer.Email</td>
+                                    <td>@lecturer.PhoneNumber</td>
+                                    <td style="max-width: 200px; word-wrap: break-word;">@lecturer.Address</td>
+                                    <td>@lecturer.RegistrationDate.ToString("dd-MMM-yyyy")</td>
+                                    <td>
+                                        <div class="table-actions">
+                                            <a href="@Url.Action("EditLecturer", "HR", new { id = lecturer.UserID })" class="btn btn-ghost btn-sm">Edit</a>
+                                            <form method="post" action="@Url.Action("DeleteLecturer", "HR")" onsubmit="return confirm('Are you sure you want to delete lecturer @lecturer.FirstName @lecturer.Surname? This action cannot be undone.');">
+                                                <input type="hidden" name="id" value="@lecturer.UserID" />
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="btn btn-decline btn-sm">Delete</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="card" style="margin-top: 20px; background: #f8f9fa;">
+                    <h3>📈 Summary</h3>
+                    <p><strong>Total Lecturers:</strong> @Model.Count</p>
+                    <p><strong>Recently Registered:</strong> @Model.Count(l => l.RegistrationDate >= DateTime.Now.AddDays(-30)) in last 30 days</p>
+                </div>
+            }
+        </div>
+    </div>
+</body>
+</html>
