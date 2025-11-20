@@ -1,9 +1,9 @@
-using System.Diagnostics;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
-using POE___PART_2___Contract_Monthly_Claims_System.Models;
+using Microsoft.AspNetCore.Mvc;
 using POE___PART_2___Contract_Monthly_Claims_System.Data;
+using POE___PART_2___Contract_Monthly_Claims_System.Models;
+using System.Diagnostics;
 
 namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
 {
@@ -69,7 +69,8 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
 
                 if (user != null)
                 {
-                    HttpContext.Session.SetInt32("UserId", user.UserID);
+                    // Changed from SetInt32 to SetString for UserId
+                    HttpContext.Session.SetString("UserId", user.UserID);
                     HttpContext.Session.SetString("UserRole", user.Role);
                     HttpContext.Session.SetString("UserName", $"{user.FirstName} {user.Surname}");
                     HttpContext.Session.SetString("UserEmail", user.Email);
@@ -81,6 +82,7 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
                         "Lecturer" => RedirectToAction("LecturerDashboard"),
                         "Coordinator" => RedirectToAction("CoordinatorDashboard"),
                         "Manager" => RedirectToAction("ManagerDashboard"),
+                        "HR" => RedirectToAction("HRDashboard", "HR"),
                         _ => RedirectToAction("Index")
                     };
                 }
@@ -110,8 +112,8 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
         private bool IsUserLoggedIn(string requiredRole)
         {
             var userRole = HttpContext.Session.GetString("UserRole");
-            var userId = HttpContext.Session.GetInt32("UserId");
-            return userId.HasValue && userRole == requiredRole;
+            var userId = HttpContext.Session.GetString("UserId"); // Changed from GetInt32 to GetString
+            return !string.IsNullOrEmpty(userId) && userRole == requiredRole;
         }
 
         // Lecturer Dashboard
@@ -123,8 +125,8 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
                 return RedirectToAction("Login");
             }
 
-            var userId = HttpContext.Session.GetInt32("UserId");
-            var user = await _queries.GetUserByIdAsync(userId.Value);
+            var userId = HttpContext.Session.GetString("UserId"); // Changed from GetInt32 to GetString
+            var user = await _queries.GetUserByIdAsync(userId);
 
             if (user == null)
             {
@@ -139,13 +141,15 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
             var totalClaims = await _queries.GetClaimsCountAsync(userId);
             var pendingClaims = await _queries.GetClaimsCountAsync(userId, "Pending");
             var approvedClaims = await _queries.GetClaimsCountAsync(userId, "Approved");
+            var paidClaims = await _queries.GetClaimsCountAsync(userId, "Paid");
 
             ViewBag.TotalClaims = totalClaims;
             ViewBag.PendingClaims = pendingClaims;
             ViewBag.ApprovedClaims = approvedClaims;
+            ViewBag.PaidClaims = paidClaims;
 
             // Get recent claims
-            var recentClaims = await _queries.GetClaimsByUserIdAsync(userId.Value);
+            var recentClaims = await _queries.GetClaimsByUserIdAsync(userId);
             ViewBag.RecentClaims = recentClaims.Take(5).ToList();
 
             return View();
@@ -178,8 +182,8 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
             {
                 try
                 {
-                    var userId = HttpContext.Session.GetInt32("UserId");
-                    if (userId == null)
+                    var userId = HttpContext.Session.GetString("UserId"); // Changed from GetInt32 to GetString
+                    if (string.IsNullOrEmpty(userId))
                     {
                         TempData["Error"] = "User session expired. Please login again.";
                         return RedirectToAction("Login");
@@ -192,7 +196,7 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
                         return View(claim);
                     }
 
-                    claim.UserID = userId.Value;
+                    claim.UserID = userId;
                     claim.Status = "Pending";
                     claim.SubmissionDate = DateTime.Now;
 
@@ -273,8 +277,8 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
                 return RedirectToAction("Login");
             }
 
-            var userId = HttpContext.Session.GetInt32("UserId");
-            var claims = await _queries.GetClaimsByUserIdAsync(userId.Value);
+            var userId = HttpContext.Session.GetString("UserId"); // Changed from GetInt32 to GetString
+            var claims = await _queries.GetClaimsByUserIdAsync(userId);
 
             // Load documents for each claim
             foreach (var claim in claims)
@@ -294,8 +298,8 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
                 return RedirectToAction("Login");
             }
 
-            var userId = HttpContext.Session.GetInt32("UserId");
-            var claim = await _queries.GetClaimByIdAsync(id, userId.Value);
+            var userId = HttpContext.Session.GetString("UserId"); // Changed from GetInt32 to GetString
+            var claim = await _queries.GetClaimByIdAsync(id, userId);
 
             if (claim == null)
             {
@@ -325,13 +329,13 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
                 return RedirectToAction("Login");
             }
 
-            var userId = HttpContext.Session.GetInt32("UserId");
+            var userId = HttpContext.Session.GetString("UserId"); // Changed from GetInt32 to GetString
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    var existingClaim = await _queries.GetClaimByIdAsync(claimId, userId.Value);
+                    var existingClaim = await _queries.GetClaimByIdAsync(claimId, userId);
 
                     if (existingClaim == null)
                     {
@@ -340,7 +344,7 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
                     }
 
                     updatedClaim.ClaimID = claimId;
-                    updatedClaim.UserID = userId.Value;
+                    updatedClaim.UserID = userId;
                     updatedClaim.CorrectionNotes = correctionNotes;
                     updatedClaim.Status = "Resubmitted";
                     updatedClaim.SubmissionDate = DateTime.Now;
@@ -407,8 +411,8 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
                 return RedirectToAction("Login");
             }
 
-            var userId = HttpContext.Session.GetInt32("UserId");
-            var user = await _queries.GetUserByIdAsync(userId.Value);
+            var userId = HttpContext.Session.GetString("UserId"); // Changed from GetInt32 to GetString
+            var user = await _queries.GetUserByIdAsync(userId);
 
             if (user == null)
             {
@@ -419,13 +423,15 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
             ViewBag.UserName = $"{user.FirstName} {user.Surname}";
 
             var totalPendingClaims = await _queries.GetClaimsCountAsync(null, "Pending") +
-                                   await _queries.GetClaimsCountAsync(null, "Resubmitted");
+                       await _queries.GetClaimsCountAsync(null, "Resubmitted");
             var totalVerifiedClaims = await _queries.GetClaimsCountAsync(null, "Verified");
             var totalClaims = await _queries.GetClaimsCountAsync();
+            var totalPaidClaims = await _queries.GetClaimsCountAsync(null, "Paid");
 
             ViewBag.TotalPendingClaims = totalPendingClaims;
             ViewBag.TotalVerifiedClaims = totalVerifiedClaims;
             ViewBag.TotalClaims = totalClaims;
+            ViewBag.TotalPaidClaims = totalPaidClaims;
 
             return View();
         }
@@ -469,9 +475,10 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
                 {
                     if (action == "approve")
                     {
-                        await _queries.UpdateClaimStatusAsync(claimId, "Verified", notes);
+                        var coordinatorName = HttpContext.Session.GetString("UserName");
+                        await _queries.UpdateClaimStatusAsync(claimId, "Verified", notes, verifiedBy: coordinatorName);
                         TempData["Success"] = $"Claim #{claimId} from {claim.User?.FirstName} {claim.User?.Surname} has been verified successfully!";
-                        _logger.LogInformation($"Coordinator verified claim #{claimId}");
+                        _logger.LogInformation($"Coordinator {coordinatorName} verified claim #{claimId}");
                     }
                     else if (action == "reject")
                     {
@@ -514,8 +521,8 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
                 return RedirectToAction("Login");
             }
 
-            var userId = HttpContext.Session.GetInt32("UserId");
-            var user = await _queries.GetUserByIdAsync(userId.Value);
+            var userId = HttpContext.Session.GetString("UserId"); // Changed from GetInt32 to GetString
+            var user = await _queries.GetUserByIdAsync(userId);
 
             if (user == null)
             {
@@ -529,11 +536,13 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
             var totalApprovedClaims = await _queries.GetClaimsCountAsync(null, "Approved");
             var totalRejectedClaims = await _queries.GetClaimsCountAsync(null, "Rejected");
             var totalClaims = await _queries.GetClaimsCountAsync();
+            var totalPaidClaims = await _queries.GetClaimsCountAsync(null, "Paid");
 
             ViewBag.TotalVerifiedClaims = totalVerifiedClaims;
             ViewBag.TotalApprovedClaims = totalApprovedClaims;
             ViewBag.TotalRejectedClaims = totalRejectedClaims;
             ViewBag.TotalClaims = totalClaims;
+            ViewBag.TotalPaidClaims = totalPaidClaims;
 
             return View();
         }
@@ -584,9 +593,10 @@ namespace POE___PART_2___Contract_Monthly_Claims_System.Controllers
 
                     if (action == "approve")
                     {
-                        await _queries.UpdateClaimStatusAsync(claimId, "Approved", notes);
+                        var managerName = HttpContext.Session.GetString("UserName");
+                        await _queries.UpdateClaimStatusAsync(claimId, "Approved", notes, approvedBy: managerName);
                         TempData["Success"] = $"Claim #{claimId} from {claim.User?.FirstName} {claim.User?.Surname} has been approved successfully!";
-                        _logger.LogInformation($"Manager approved claim #{claimId}");
+                        _logger.LogInformation($"Manager {managerName} approved claim #{claimId}");
                     }
                     else if (action == "reject")
                     {
