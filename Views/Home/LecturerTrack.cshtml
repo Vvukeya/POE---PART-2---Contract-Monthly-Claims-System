@@ -79,9 +79,15 @@
                                     {
                                         <span class="badge badge-primary">@claim.Status</span>
                                     }
+                                    else if (claim.Status == "Paid")
+                                    {
+                                        <span class="badge badge-success">💰 Paid</span>
+                                        <br>
+                                        <small>Paid on: @claim.PaymentDate?.ToString("dd-MMM-yyyy")</small>
+                                    }
                                     else if (claim.Status == "Rejected")
                                     {
-                                        <span class="badge badge-success">@claim.Status</span>
+                                        <span class="badge badge-danger">@claim.Status</span>
                                     }
                                     else if (claim.Status == "Resubmitted")
                                     {
