@@ -4,6 +4,7 @@
     var totalPendingClaims = ViewBag.TotalPendingClaims ?? 0;
     var totalVerifiedClaims = ViewBag.TotalVerifiedClaims ?? 0;
     var totalClaims = ViewBag.TotalClaims ?? 0;
+    var totalPaidClaims = ViewBag.TotalPaidClaims ?? 0;
 }
 
 <!DOCTYPE html>
@@ -55,6 +56,12 @@
                 <h3>Verified</h3>
                 <p style="font-size: 2rem; color: #0288d1; font-weight: bold;">@totalVerifiedClaims</p>
                 <p>Ready for manager approval</p>
+            </div>
+
+            <div class="card">
+                <h3>Paid Claims</h3>
+                <p style="font-size: 2rem; color: #388e3c; font-weight: bold;">@totalPaidClaims</p>
+                <p>Payment processed</p>
             </div>
         </div>
 
