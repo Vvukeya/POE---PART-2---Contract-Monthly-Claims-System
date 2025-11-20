@@ -3,11 +3,201 @@
 }
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <title>@ViewData["Title"] – Contract Monthly Claims System</title>
     <link rel="stylesheet" href="~/css/Style.css">
+    <style>
+        .hero-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+            border-radius: 15px;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .logo-container {
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .logo {
+            max-width: 180px;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+            .logo:hover {
+                transform: scale(1.05);
+            }
+
+        .hero-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-left: 4px solid #667eea;
+        }
+
+            .feature-card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .feature-description {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .role-card {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+
+            .role-card .feature-title {
+                color: white;
+            }
+
+            .role-card .feature-description {
+                color: rgba(255,255,255,0.9);
+            }
+
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-hero {
+            padding: 1rem 2.5rem;
+            font-size: 1.1rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .btn-primary-hero {
+            background: white;
+            color: #667eea;
+        }
+
+            .btn-primary-hero:hover {
+                background: transparent;
+                color: white;
+                border-color: white;
+            }
+
+        .btn-ghost-hero {
+            background: transparent;
+            color: white;
+            border: 2px solid white;
+        }
+
+            .btn-ghost-hero:hover {
+                background: white;
+                color: #667eea;
+            }
+
+        .stats-section {
+            background: #f8f9fa;
+            padding: 3rem 2rem;
+            border-radius: 15px;
+            margin-top: 3rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            text-align: center;
+        }
+
+        .stat-item {
+            padding: 1.5rem;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .welcome-message {
+            text-align: center;
+            margin-bottom: 3rem;
+            color: #333;
+        }
+
+            .welcome-message h2 {
+                font-size: 2.2rem;
+                margin-bottom: 1rem;
+                color: #333;
+            }
+
+            .welcome-message p {
+                font-size: 1.2rem;
+                color: #666;
+                max-width: 800px;
+                margin: 0 auto;
+                line-height: 1.6;
+            }
+    </style>
 </head>
 <body>
     <header>
@@ -15,32 +205,139 @@
     </header>
 
     <div class="container">
-        <div class="card" style="text-align: center; padding: 3rem;">
-            <h2>Welcome to CMCS</h2>
-            <p style="font-size: 1.2rem; margin-bottom: 2rem;">
-                Streamline your monthly claims process with our efficient management system
-            </p>
-
-            <div style="display: flex; justify-content: center; gap: 2rem; flex-wrap: wrap; margin: 2rem 0;">
-                <div style="flex: 1; min-width: 250px;">
-                    <h3>For Lecturers</h3>
-                    <p>Submit monthly claims, track status, and upload supporting documents</p>
-                </div>
-                <div style="flex: 1; min-width: 250px;">
-                    <h3>For Coordinators</h3>
-                    <p>Verify and review claims submitted by lecturers</p>
-                </div>
-                <div style="flex: 1; min-width: 250px;">
-                    <h3>For Managers</h3>
-                    <p>Approve verified claims and manage the claims process</p>
-                </div>
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <div class="logo-container">
+                <img src="~/images/rc logo.png" alt="RC Logo" class="logo">
             </div>
 
-            <div style="display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; margin-top: 2rem;">
-                <a href="@Url.Action("Login", "Home")" class="btn btn-primary" style="padding: 0.8rem 2rem;">Login</a>
-                <a href="@Url.Action("Register", "Home")" class="btn btn-ghost" style="padding: 0.8rem 2rem;">Register</a>
+            <h1 class="hero-title">Contract Monthly Claims System</h1>
+            <p class="hero-subtitle">Streamline your monthly claims process with our efficient management system</p>
+
+            <div class="action-buttons">
+                <a href="@Url.Action("Login", "Home")" class="btn-hero btn-primary-hero">Login to System</a>
+                <a href="@Url.Action("Register", "Home")" class="btn-hero btn-ghost-hero">Create Account</a>
+            </div>
+        </div>
+
+        <!-- Welcome Message -->
+        <div class="welcome-message">
+            <h2>Welcome to CMCS</h2>
+            <p>Our comprehensive platform simplifies the entire claims management process, from submission to payment, ensuring accuracy and efficiency for all stakeholders.</p>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="features-grid">
+            <!-- For Lecturers -->
+            <div class="feature-card">
+                <div class="feature-icon">👨‍🏫</div>
+                <h3 class="feature-title">For Lecturers</h3>
+                <p class="feature-description">
+                    Submit monthly claims, track status in real-time, upload supporting documents,
+                    and resubmit rejected claims with ease. Stay informed about your payment status.
+                </p>
+            </div>
+
+            <!-- For Coordinators -->
+            <div class="feature-card">
+                <div class="feature-icon">📋</div>
+                <h3 class="feature-title">For Programme Coordinators</h3>
+                <p class="feature-description">
+                    Verify and review claims submitted by lecturers. Ensure accuracy and compliance
+                    with institutional policies. Provide constructive feedback when needed.
+                </p>
+            </div>
+
+            <!-- For Managers -->
+            <div class="feature-card">
+                <div class="feature-icon">✅</div>
+                <h3 class="feature-title">For Academic Managers</h3>
+                <p class="feature-description">
+                    Approve verified claims and manage the final approval process. Maintain oversight
+                    and ensure fairness across all departments and claims.
+                </p>
+            </div>
+
+            <!-- For HR -->
+            <div class="feature-card role-card">
+                <div class="feature-icon">💰</div>
+                <h3 class="feature-title">For HR Managers</h3>
+                <p class="feature-description">
+                    Manage lecturer data, generate comprehensive reports, create payment invoices,
+                    process payments, and track all claim statuses through the complete workflow.
+                </p>
+            </div>
+        </div>
+
+        <!-- System Benefits -->
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h3 class="feature-title">Fast Processing</h3>
+                <p class="feature-description">
+                    Reduce processing time with our streamlined digital workflow and automated notifications.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3 class="feature-title">Secure & Reliable</h3>
+                <p class="feature-description">
+                    Your data is protected with enterprise-grade security and regular backups.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3 class="feature-title">Real-time Tracking</h3>
+                <p class="feature-description">
+                    Monitor claim status in real-time with comprehensive dashboards and reporting.
+                </p>
+            </div>
+        </div>
+
+        <!-- Statistics Section -->
+        <div class="stats-section">
+            <h2 style="text-align: center; margin-bottom: 2rem; color: #333;">Why Choose CMCS?</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number">99%</div>
+                    <div class="stat-label">Faster Processing</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">Digital Workflow</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">System Availability</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">0</div>
+                    <div class="stat-label">Paper Forms</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Final Call to Action -->
+        <div style="text-align: center; margin-top: 3rem; padding: 2rem;">
+            <h2 style="color: #333; margin-bottom: 1rem;">Ready to Get Started?</h2>
+            <p style="color: #666; margin-bottom: 2rem; font-size: 1.1rem;">
+                Join hundreds of institutions that have streamlined their claims process with CMCS.
+            </p>
+            <div class="action-buttons">
+                <a href="@Url.Action("Login", "Home")" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">Login Now</a>
+                <a href="@Url.Action("Register", "Home")" class="btn btn-ghost" style="padding: 1rem 2rem; font-size: 1.1rem;">Register Today</a>
             </div>
         </div>
     </div>
+
+    <footer style="text-align: center; padding: 2rem; margin-top: 3rem; background: #f8f9fa; border-radius: 10px;">
+        <p style="color: #666; margin: 0;">
+            &copy; 2024 Contract Monthly Claims System. All rights reserved. |
+            <a href="#" style="color: #667eea; text-decoration: none;">Privacy Policy</a> |
+            <a href="#" style="color: #667eea; text-decoration: none;">Terms of Service</a>
+        </p>
+    </footer>
 </body>
 </html>
