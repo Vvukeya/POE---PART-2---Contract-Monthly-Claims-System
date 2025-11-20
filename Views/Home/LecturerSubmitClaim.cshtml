@@ -29,7 +29,7 @@
 
             @if (TempData["Success"] != null)
             {
-                <div style="background: #d4edda; color: #155724; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                <div class="alert alert-success">
                     @TempData["Success"]
                 </div>
             }
@@ -37,7 +37,7 @@
             <!-- Display validation errors -->
             @if (!ViewData.ModelState.IsValid)
             {
-                <div style="background: #f8d7da; color: #721c24; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                <div class="alert alert-error">
                     @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
                     {
                         <div>@error.ErrorMessage</div>
@@ -69,18 +69,29 @@
                     </div>
                     <div>
                         <label asp-for="Hours">Hours Worked</label>
-                        <input asp-for="Hours" type="number" step="0.1" placeholder="e.g., 36.5" required>
+                        <input asp-for="Hours" type="number" step="0.1" placeholder="e.g., 36.5" required id="hoursInput">
                         <span asp-validation-for="Hours" class="text-danger"></span>
                     </div>
                     <div>
                         <label asp-for="HourlyRate">Hourly Rate (R)</label>
-                        <input asp-for="HourlyRate" type="number" step="0.01" placeholder="e.g., 250.00" required>
+                        <input asp-for="HourlyRate" type="number" step="0.01" placeholder="e.g., 250.00" required id="rateInput">
                         <span asp-validation-for="HourlyRate" class="text-danger"></span>
                     </div>
                     <div>
                         <label asp-for="Sessions">Number of Sessions</label>
                         <input asp-for="Sessions" type="number" placeholder="e.g., 12" required>
                         <span asp-validation-for="Sessions" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <!-- Auto-calculation display -->
+                <div id="totalCalculation" style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 15px; border-radius: 8px; margin: 15px 0; font-weight: bold; color: #0d47a1; border-left: 4px solid #1976d2;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="font-size: 1.2em;">Calculated Total: R 0.00</strong><br>
+                            <small>Hours (0) × Rate (R 0.00) = R 0.00</small>
+                        </div>
+                        <div style="font-size: 1.5em;">💰</div>
                     </div>
                 </div>
 
@@ -104,6 +115,37 @@
             </form>
         </div>
     </div>
+
+    <!-- Auto-calculation JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const hoursInput = document.getElementById('hoursInput');
+            const rateInput = document.getElementById('rateInput');
+            const totalDisplay = document.getElementById('totalCalculation');
+
+            function calculateTotal() {
+                const hours = parseFloat(hoursInput.value) || 0;
+                const rate = parseFloat(rateInput.value) || 0;
+                const total = hours * rate;
+
+                totalDisplay.innerHTML = `
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="font-size: 1.2em;">Calculated Total: R ${total.toFixed(2)}</strong><br>
+                            <small>Hours (${hours}) × Rate (R ${rate.toFixed(2)}) = R ${total.toFixed(2)}</small>
+                        </div>
+                        <div style="font-size: 1.5em;">💰</div>
+                    </div>
+                `;
+            }
+
+            hoursInput.addEventListener('input', calculateTotal);
+            rateInput.addEventListener('input', calculateTotal);
+
+            // Initial calculation
+            calculateTotal();
+        });
+    </script>
 
     @section Scripts {
         <partial name="_ValidationScriptsPartial" />
