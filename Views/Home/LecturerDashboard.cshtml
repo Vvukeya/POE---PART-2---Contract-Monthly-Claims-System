@@ -5,6 +5,7 @@
     var totalClaims = ViewBag.TotalClaims ?? 0;
     var pendingClaims = ViewBag.PendingClaims ?? 0;
     var approvedClaims = ViewBag.ApprovedClaims ?? 0;
+    var paidClaims = ViewBag.PaidClaims ?? 0; // Add this line
     var recentClaims = ViewBag.RecentClaims as List<Claim> ?? new List<Claim>();
 }
 
@@ -59,6 +60,12 @@
                 <p style="font-size: 2rem; color: #2e7d32; font-weight: bold;">@approvedClaims</p>
                 <p>Successfully approved</p>
             </div>
+
+            <div class="card">
+                <h3>Paid Claims</h3>
+                <p style="font-size: 2rem; color: #388e3c; font-weight: bold;">@paidClaims</p>
+                <p>Payment processed</p>
+            </div>
         </div>
 
         <!-- Recent Claims -->
@@ -96,9 +103,13 @@
                                     {
                                         <span class="badge badge-primary">@claim.Status</span>
                                     }
+                                    else if (claim.Status == "Paid")
+                                    {
+                                        <span class="badge badge-success">💰 Paid</span>
+                                    }
                                     else if (claim.Status == "Rejected")
                                     {
-                                        <span class="badge badge-success">@claim.Status</span>
+                                        <span class="badge badge-danger">@claim.Status</span>
                                     }
                                     else if (claim.Status == "Resubmitted")
                                     {
