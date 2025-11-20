@@ -1,0 +1,152 @@
+﻿@model List<POE___PART_2___Contract_Monthly_Claims_System.Controllers.LecturerInvoice>
+@{
+    ViewData["Title"] = "Generate Invoices – HR";
+    var grandTotal = ViewBag.GrandTotal ?? 0;
+    var totalInvoices = ViewBag.TotalInvoices ?? 0;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/Style.css">
+</head>
+<body>
+    <header>
+        <h1>CMCS – HR Invoices</h1>
+        <a href="@Url.Action("Logout", "Home")" class="signout-btn">Sign Out</a>
+    </header>
+
+    <nav>
+        <ul>
+            <li><a href="@Url.Action("HRDashboard", "HR")">Dashboard</a></li>
+            <li><a href="@Url.Action("ManageLecturers", "HR")">Manage Lecturers</a></li>
+            <li><a href="@Url.Action("GenerateReports", "HR")">Reports</a></li>
+            <li><a href="@Url.Action("ViewClaimStatuses", "HR")">Track Claims</a></li>
+        </ul>
+    </nav>
+
+    <div class="container">
+        <div class="card">
+            <h2>Generate Payment Invoices</h2>
+            <p class="text-muted">Create invoices for approved claims grouped by lecturer</p>
+
+            <!-- Invoice Summary -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Invoices</h3>
+                    <div class="stat-number">@totalInvoices</div>
+                    <p class="stat-description">Lecturers to pay</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Grand Total</h3>
+                    <div class="stat-number">R @grandTotal.ToString("N2")</div>
+                    <p class="stat-description">Total payment amount</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Average Invoice</h3>
+                    <div class="stat-number">R @(totalInvoices > 0 ? (grandTotal / totalInvoices).ToString("N2") : "0.00")</div>
+                    <p class="stat-description">Per lecturer</p>
+                </div>
+            </div>
+
+            @if (!Model.Any())
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon">🧾</div>
+                    <h3>No Invoices to Generate</h3>
+                    <p>There are no approved claims to generate invoices for.</p>
+                    <p>Invoices will appear here once claims are approved by Academic Managers.</p>
+                </div>
+            }
+            else
+            {
+                <div class="invoice-list">
+                    @foreach (var invoice in Model)
+                    {
+                        <div class="card" style="margin-bottom: 20px; border-left: 4px solid #1976d2;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                                <div style="flex: 1;">
+                                    <h3 style="margin: 0; color: #1976d2;">@invoice.LecturerName</h3>
+                                    <p style="margin: 5px 0; color: #666;">@invoice.LecturerEmail</p>
+                                    <p style="margin: 0; font-size: 0.9em;">Period: @invoice.Period</p>
+                                    <p style="margin: 5px 0; font-size: 0.9em;">Claims: @invoice.ClaimCount approved claim@(invoice.ClaimCount != 1 ? "s" : "")</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <div style="font-size: 1.5em; font-weight: bold; color: #2e7d32;">
+                                        R @invoice.TotalAmount.ToString("N2")
+                                    </div>
+                                    <div style="font-size: 0.9em; color: #666;">
+                                        Ready for payment
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Claim Details -->
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 10px;">
+                                <h4 style="margin-top: 0;">Claim Details:</h4>
+                                <div class="table-responsive">
+                                    <table class="table" style="font-size: 0.9em;">
+                                        <thead>
+                                            <tr>
+                                                <th>Claim ID</th>
+                                                <th>Module</th>
+                                                <th>Period</th>
+                                                <th>Hours</th>
+                                                <th>Rate (R)</th>
+                                                <th>Amount (R)</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var claim in invoice.Claims)
+                                            {
+                                                <tr>
+                                                    <td>#@claim.ClaimID</td>
+                                                    <td>@claim.ModuleCode</td>
+                                                    <td>@claim.Month/@claim.Year</td>
+                                                    <td>@claim.Hours</td>
+                                                    <td>@claim.HourlyRate.ToString("N2")</td>
+                                                    <td>@claim.TotalAmount.ToString("N2")</td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Invoice Actions -->
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <a href="@Url.Action("GenerateLecturerInvoice", "HR", new { id = invoice.UserID })"
+                                   class="btn btn-primary btn-sm" target="_blank">
+                                    🧾 Generate PDF Invoice
+                                </a>
+                                <a href="@Url.Action("ViewClaimStatuses", "HR")" class="btn btn-ghost btn-sm">
+                                    📋 View All Claims
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <!-- Batch Actions -->
+                <div class="card" style="margin-top: 30px; background: #e8f5e8; border: 1px solid #2e7d32;">
+                    <h3 style="color: #2e7d32;">🎯 Batch Processing</h3>
+                    <p>Quick actions for processing all invoices:</p>
+                    <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
+                        <a href="@Url.Action("GenerateReports", "HR")" class="btn btn-primary">
+                            📊 View Detailed Report
+                        </a>
+                        <a href="@Url.Action("ViewClaimStatuses", "HR")" class="btn btn-ghost">
+                            💳 Process Payments
+                        </a>
+                        <a href="@Url.Action("ExportPaymentBatch", "HR")" class="btn btn-ghost">
+                            📁 Export Payment Batch
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</body>
+</html>
